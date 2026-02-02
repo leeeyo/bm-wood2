@@ -1,0 +1,542 @@
+{
+  "info": {
+    "name": "BM Wood API",
+    "description": "API tests for BM Wood Next.js backend: auth, categories, products, devis, users, uploads.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "accessToken", "value": "" },
+    { "key": "categoryId", "value": "" },
+    { "key": "productId", "value": "" },
+    { "key": "devisId", "value": "" },
+    { "key": "userId", "value": "" },
+    { "key": "mediaId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.success && res.data && res.data.tokens) {",
+                  "  pm.collectionVariables.set('accessToken', res.data.tokens.accessToken);",
+                  "  pm.test('Login success and token saved', () => pm.expect(res.data.tokens.accessToken).to.be.a('string'));",
+                  "} else {",
+                  "  pm.test('Login response has tokens', () => pm.expect(res.success).to.be.true);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@bmwood.tn\",\n  \"password\": \"Admin123!\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "Returns user and tokens. Saves accessToken to collection variable for protected routes."
+          }
+        },
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"staff@bmwood.tn\",\n  \"password\": \"Staff123!\",\n  \"firstName\": \"Jean\",\n  \"lastName\": \"Dupont\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/register",
+            "description": "Password: min 8 chars, 1 uppercase, 1 lowercase, 1 number."
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/api/auth/me",
+            "description": "Current user profile (requires auth)."
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/refresh",
+            "description": "Refresh token from cookie or body. Use after Login to get new access token."
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/api/auth/logout",
+            "description": "Invalidates refresh token (requires auth)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "List Categories",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/categories",
+            "description": "List all categories (no auth)."
+          }
+        },
+        {
+          "name": "Create Category",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.success && res.data && res.data._id) {",
+                  "  pm.collectionVariables.set('categoryId', res.data._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Portes\",\n  \"slug\": \"portes\",\n  \"description\": \"Portes sur mesure\",\n  \"isActive\": true,\n  \"order\": 0\n}"
+            },
+            "url": "{{baseUrl}}/api/categories",
+            "description": "Create category (auth). Slug optional (auto from name)."
+          }
+        },
+        {
+          "name": "Get Category by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/api/categories/{{categoryId}}",
+            "description": "Get single category."
+          }
+        },
+        {
+          "name": "Update Category",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Portes et fenêtres\",\n  \"description\": \"Portes et fenêtres sur mesure\",\n  \"isActive\": true,\n  \"order\": 1\n}"
+            },
+            "url": "{{baseUrl}}/api/categories/{{categoryId}}",
+            "description": "Partial update (auth)."
+          }
+        },
+        {
+          "name": "Delete Category",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/api/categories/{{categoryId}}",
+            "description": "Delete category (auth)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "List Products",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/products?page=1&limit=20&sortBy=createdAt&sortOrder=desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "sortBy", "value": "createdAt" },
+                { "key": "sortOrder", "value": "desc" },
+                { "key": "categoryId", "value": "{{categoryId}}", "disabled": true },
+                { "key": "isFeatured", "value": "true", "disabled": true },
+                { "key": "isActive", "value": "true", "disabled": true },
+                { "key": "search", "value": "", "disabled": true }
+              ]
+            },
+            "description": "Paginated list. Query: page, limit, sortBy (name|createdAt|updatedAt), sortOrder, categoryId, isFeatured, isActive, search."
+          }
+        },
+        {
+          "name": "Create Product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.success && res.data && res.data._id) {",
+                  "  pm.collectionVariables.set('productId', res.data._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Porte d'entrée chêne\",\n  \"slug\": \"porte-entree-chene\",\n  \"description\": \"Porte d'entrée en chêne massif\",\n  \"categoryId\": \"{{categoryId}}\",\n  \"images\": [],\n  \"specifications\": {\n    \"dimensions\": \"Sur mesure\",\n    \"materials\": [\"chêne\"],\n    \"colors\": [\"naturel\"],\n    \"customizable\": true\n  },\n  \"isFeatured\": false,\n  \"isActive\": true\n}"
+            },
+            "url": "{{baseUrl}}/api/products",
+            "description": "Create product (auth). categoryId must be valid 24-char hex. Slug optional."
+          }
+        },
+        {
+          "name": "Get Product by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/api/products/{{productId}}",
+            "description": "Get single product."
+          }
+        },
+        {
+          "name": "Update Product",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Porte d'entrée chêne premium\",\n  \"description\": \"Porte d'entrée en chêne massif, finition vernie\",\n  \"isFeatured\": true,\n  \"isActive\": true\n}"
+            },
+            "url": "{{baseUrl}}/api/products/{{productId}}",
+            "description": "Partial update (auth)."
+          }
+        },
+        {
+          "name": "Delete Product",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/api/products/{{productId}}",
+            "description": "Delete product (auth)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Devis",
+      "item": [
+        {
+          "name": "List Devis",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/devis?page=1&limit=20&sortBy=createdAt&sortOrder=desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "devis"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "sortBy", "value": "createdAt" },
+                { "key": "sortOrder", "value": "desc" },
+                { "key": "status", "value": "pending", "disabled": true },
+                { "key": "assignedTo", "value": "", "disabled": true },
+                { "key": "dateFrom", "value": "", "disabled": true },
+                { "key": "dateTo", "value": "", "disabled": true }
+              ]
+            },
+            "description": "Paginated list. Query: page, limit, sortBy (reference|createdAt|updatedAt|status), sortOrder, status (pending|reviewed|approved|rejected|in_progress|completed), assignedTo, dateFrom, dateTo (ISO)."
+          }
+        },
+        {
+          "name": "Create Devis",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.success && res.data && res.data._id) {",
+                  "  pm.collectionVariables.set('devisId', res.data._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"client\": {\n    \"firstName\": \"Ahmed\",\n    \"lastName\": \"Ben Ali\",\n    \"email\": \"ahmed@example.com\",\n    \"phone\": \"+216 12 345 678\",\n    \"address\": \"123 Rue de la Paix\",\n    \"city\": \"Tunis\"\n  },\n  \"items\": [\n    {\n      \"description\": \"Porte d'entrée sur mesure\",\n      \"quantity\": 1,\n      \"dimensions\": \"100x220 cm\",\n      \"notes\": \"Finitions vernies\"\n    },\n    {\n      \"productId\": \"{{productId}}\",\n      \"description\": \"Fenêtre double vitrage\",\n      \"quantity\": 2\n    }\n  ],\n  \"notes\": \"Livraison souhaitée sous 4 semaines.\"\n}"
+            },
+            "url": "{{baseUrl}}/api/devis",
+            "description": "Create quote (auth). Sends confirmation email to client and notification to admin. Items: at least one with description and quantity."
+          }
+        },
+        {
+          "name": "Get Devis by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/api/devis/{{devisId}}",
+            "description": "Get single devis."
+          }
+        },
+        {
+          "name": "Update Devis",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"adminNotes\": \"Devis en cours d'étude\",\n  \"assignedTo\": \"{{userId}}\",\n  \"estimatedPrice\": 5000,\n  \"estimatedDate\": \"2025-03-15T00:00:00.000Z\"\n}"
+            },
+            "url": "{{baseUrl}}/api/devis/{{devisId}}",
+            "description": "Partial update (auth). assignedTo: user ObjectId or null."
+          }
+        },
+        {
+          "name": "Update Devis Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"reviewed\",\n  \"adminNotes\": \"Devis reçu et en cours d'étude.\"\n}"
+            },
+            "url": "{{baseUrl}}/api/devis/{{devisId}}/status",
+            "description": "Update status only (auth). status: pending|reviewed|approved|rejected|in_progress|completed. Sends status email to client."
+          }
+        },
+        {
+          "name": "Get Devis PDF",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/api/devis/{{devisId}}/pdf",
+            "description": "Returns PDF file (auth)."
+          }
+        },
+        {
+          "name": "Delete Devis",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/api/devis/{{devisId}}",
+            "description": "Delete devis (auth)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/users?page=1&limit=20&sortBy=createdAt&sortOrder=desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "sortBy", "value": "createdAt" },
+                { "key": "sortOrder", "value": "desc" },
+                { "key": "role", "value": "staff", "disabled": true },
+                { "key": "isActive", "value": "true", "disabled": true }
+              ]
+            },
+            "description": "Paginated list (admin only). Query: page, limit, sortBy (email|firstName|lastName|createdAt), sortOrder, role (admin|manager|staff), isActive."
+          }
+        },
+        {
+          "name": "Create User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.success && res.data && res.data._id) {",
+                  "  pm.collectionVariables.set('userId', res.data._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"manager@bmwood.tn\",\n  \"password\": \"Manager123!\",\n  \"firstName\": \"Marie\",\n  \"lastName\": \"Martin\",\n  \"role\": \"manager\"\n}"
+            },
+            "url": "{{baseUrl}}/api/users",
+            "description": "Create user (admin only). role: admin|manager|staff (default staff)."
+          }
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/api/users/{{userId}}",
+            "description": "Get single user (admin/manager or self)."
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Marie-Claire\",\n  \"lastName\": \"Martin\",\n  \"role\": \"manager\",\n  \"isActive\": true\n}"
+            },
+            "url": "{{baseUrl}}/api/users/{{userId}}",
+            "description": "Partial update (admin or self for non-role fields)."
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/api/users/{{userId}}",
+            "description": "Delete user (admin only)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Uploads",
+      "item": [
+        {
+          "name": "Upload File",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.success && res.data && res.data._id) {",
+                  "  pm.collectionVariables.set('mediaId', res.data._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": "", "description": "Select image or document" }
+              ]
+            },
+            "url": "{{baseUrl}}/api/uploads",
+            "description": "Upload file (auth). Form-data key: file. Accepted: images and documents per upload.service."
+          }
+        },
+        {
+          "name": "List Uploads",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/uploads?page=1&type=image",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "uploads"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "type", "value": "image", "description": "image | document" }
+              ]
+            },
+            "description": "List uploads (auth). Query: page, type (image|document)."
+          }
+        },
+        {
+          "name": "Get Upload by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/api/uploads/{{mediaId}}",
+            "description": "Get single media record (auth)."
+          }
+        },
+        {
+          "name": "Delete Upload",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": "{{baseUrl}}/api/uploads/{{mediaId}}",
+            "description": "Delete file and media record (auth)."
+          }
+        }
+      ]
+    }
+  ]
+}
