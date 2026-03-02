@@ -1,6 +1,16 @@
 import { Resend } from "resend";
 import { IDevis, DevisStatus } from "@/types/models.types";
 
+/** Escape user-provided content for safe HTML interpolation (prevents markup injection) */
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 // Lazy-initialize Resend so build/SSR can run without RESEND_API_KEY
 let resendInstance: Resend | null = null;
 
@@ -35,8 +45,11 @@ export async function sendDevisConfirmationEmail(devis: IDevis): Promise<EmailRe
     const { client, reference, items } = devis;
 
     const itemsList = items
-      .map((item, index) => `${index + 1}. ${item.description} (Quantité: ${item.quantity})`)
+      .map((item, index) => `${index + 1}. ${escapeHtml(item.description)} (Quantité: ${item.quantity})`)
       .join("\n");
+
+    const firstName = escapeHtml(client.firstName);
+    const lastName = escapeHtml(client.lastName);
 
     await resend.emails.send({
       from: EMAIL_FROM,
@@ -64,7 +77,7 @@ export async function sendDevisConfirmationEmail(devis: IDevis): Promise<EmailRe
               <p>Menuiserie sur mesure</p>
             </div>
             <div class="content">
-              <h2>Bonjour ${client.firstName} ${client.lastName},</h2>
+              <h2>Bonjour ${firstName} ${lastName},</h2>
               <p>Nous avons bien reçu votre demande de devis.</p>
               <p class="reference">Référence: ${reference}</p>
               
@@ -109,8 +122,14 @@ export async function sendNewDevisNotificationEmail(devis: IDevis): Promise<Emai
     const { client, reference, items, notes } = devis;
 
     const itemsList = items
-      .map((item, index) => `${index + 1}. ${item.description} (Quantité: ${item.quantity})`)
+      .map((item, index) => `${index + 1}. ${escapeHtml(item.description)} (Quantité: ${item.quantity})`)
       .join("\n");
+
+    const adminFirstName = escapeHtml(client.firstName);
+    const adminLastName = escapeHtml(client.lastName);
+    const adminAddress = client.address ? escapeHtml(client.address) : "";
+    const adminCity = client.city ? escapeHtml(client.city) : "";
+    const adminNotes = notes ? escapeHtml(notes) : "";
 
     await resend.emails.send({
       from: EMAIL_FROM,
@@ -139,27 +158,27 @@ export async function sendNewDevisNotificationEmail(devis: IDevis): Promise<Emai
             <div class="content">
               <div class="section">
                 <h3>Informations client:</h3>
-                <p><strong>Nom:</strong> ${client.firstName} ${client.lastName}</p>
-                <p><strong>Email:</strong> ${client.email}</p>
-                <p><strong>Téléphone:</strong> ${client.phone}</p>
-                ${client.address ? `<p><strong>Adresse:</strong> ${client.address}</p>` : ""}
-                ${client.city ? `<p><strong>Ville:</strong> ${client.city}</p>` : ""}
+                <p><strong>Nom:</strong> ${adminFirstName} ${adminLastName}</p>
+                <p><strong>Email:</strong> ${escapeHtml(client.email)}</p>
+                <p><strong>Téléphone:</strong> ${escapeHtml(client.phone)}</p>
+                ${adminAddress ? `<p><strong>Adresse:</strong> ${adminAddress}</p>` : ""}
+                ${adminCity ? `<p><strong>Ville:</strong> ${adminCity}</p>` : ""}
               </div>
               
               <div class="section">
                 <h3>Articles demandés:</h3>
-                <pre>${itemsList}</pre>
+                <pre>${escapeHtml(itemsList)}</pre>
               </div>
               
-              ${notes ? `
+              ${adminNotes ? `
               <div class="section">
                 <h3>Notes du client:</h3>
-                <p>${notes}</p>
+                <p>${adminNotes}</p>
               </div>
               ` : ""}
               
               <p style="text-align: center; margin-top: 20px;">
-                <a href="${APP_URL}/admin/devis/${devis._id}" class="btn">Voir le devis</a>
+                <a href="${APP_URL}/cms/devis/${devis._id}" class="btn">Voir le devis</a>
               </p>
             </div>
           </div>
@@ -255,7 +274,7 @@ export async function sendDevisStatusUpdateEmail(
               <p>Mise à jour de votre devis</p>
             </div>
             <div class="content">
-              <h2>Bonjour ${client.firstName} ${client.lastName},</h2>
+              <h2>Bonjour ${escapeHtml(client.firstName)} ${escapeHtml(client.lastName)},</h2>
               <p>Le statut de votre devis <strong>${reference}</strong> a été mis à jour.</p>
               
               <p style="text-align: center; margin: 20px 0;">
@@ -275,7 +294,7 @@ export async function sendDevisStatusUpdateEmail(
               ${adminNotes ? `
               <div class="section">
                 <h3>Message de notre équipe:</h3>
-                <p>${adminNotes}</p>
+                <p>${escapeHtml(adminNotes)}</p>
               </div>
               ` : ""}
               
@@ -345,7 +364,7 @@ export async function sendPasswordResetEmail(
               <p>Réinitialisation du mot de passe</p>
             </div>
             <div class="content">
-              <h2>Bonjour ${firstName},</h2>
+              <h2>Bonjour ${escapeHtml(firstName)},</h2>
               <p>Vous avez demandé la réinitialisation de votre mot de passe.</p>
               <p>Cliquez sur le bouton ci-dessous pour définir un nouveau mot de passe :</p>
               <p style="text-align: center;">
@@ -413,7 +432,7 @@ export async function sendDevisPdfEmail(
               <p>Votre devis est prêt</p>
             </div>
             <div class="content">
-              <h2>Bonjour ${client.firstName} ${client.lastName},</h2>
+              <h2>Bonjour ${escapeHtml(client.firstName)} ${escapeHtml(client.lastName)},</h2>
               <p>Veuillez trouver ci-joint votre devis personnalisé (référence: ${reference}).</p>
               <p>N'hésitez pas à nous contacter pour toute question ou pour confirmer votre commande.</p>
             </div>
@@ -491,14 +510,14 @@ export async function sendContactFormEmail(data: ContactFormData): Promise<Email
             <div class="content">
               <div class="section">
                 <h3>Informations:</h3>
-                <p><strong>Nom:</strong> ${data.firstName} ${data.lastName}</p>
-                <p><strong>Email:</strong> ${data.email}</p>
-                <p><strong>Téléphone:</strong> ${data.phone}</p>
-                ${data.subject ? `<p><strong>Sujet:</strong> ${data.subject}</p>` : ""}
+                <p><strong>Nom:</strong> ${escapeHtml(data.firstName)} ${escapeHtml(data.lastName)}</p>
+                <p><strong>Email:</strong> ${escapeHtml(data.email)}</p>
+                <p><strong>Téléphone:</strong> ${escapeHtml(data.phone)}</p>
+                ${data.subject ? `<p><strong>Sujet:</strong> ${escapeHtml(data.subject)}</p>` : ""}
               </div>
               <div class="section">
                 <h3>Message:</h3>
-                <p>${data.message.replace(/\n/g, "<br>")}</p>
+                <p>${escapeHtml(data.message).replace(/\n/g, "<br>")}</p>
               </div>
             </div>
           </div>

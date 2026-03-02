@@ -6,15 +6,17 @@ import { DevisRequestForm, InitialDevisItem } from "@/components/devis/devis-req
 import { Footer } from "@/components/footer"
 import { business } from "@/lib/config/business"
 
+const baseUrl = business.url
+
 export const metadata: Metadata = {
   title: "Demander un devis",
   description:
     "Demandez un devis gratuit pour votre projet de menuiserie sur mesure. Cuisine, habillage mural, portes, salon, cache radiateur et dressing.",
   alternates: {
-    canonical: `${business.url}/demander-un-devis`,
+    canonical: `${baseUrl}/demander-un-devis`,
   },
   openGraph: {
-    url: `${business.url}/demander-un-devis`,
+    url: `${baseUrl}/demander-un-devis`,
     title: "Demander un devis gratuit | BM Wood",
     description:
       "Demandez un devis gratuit pour votre projet de menuiserie sur mesure. Cuisine, habillage mural, portes, salon, cache radiateur et dressing.",

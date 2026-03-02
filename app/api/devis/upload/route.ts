@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { saveFile, isUploadError } from "@/lib/services/upload.service";
 import { errorResponse, successResponse } from "@/lib/auth/middleware";
 import { ApiResponse } from "@/types/api.types";
+import { checkRateLimit, isLikelyBot, getUploadLimit } from "@/lib/rate-limit";
 
 /**
  * POST /api/devis/upload - Public upload for devis attachments (plans, photos)
@@ -10,6 +11,21 @@ import { ApiResponse } from "@/types/api.types";
  */
 export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse<{ url: string }>>> {
   try {
+    if (isLikelyBot(request)) {
+      return errorResponse("Requête non autorisée", 403);
+    }
+    const limit = checkRateLimit(request, getUploadLimit());
+    if (!limit.allowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Trop d'uploads. Veuillez réessayer plus tard.",
+          retryAfter: limit.retryAfter,
+        },
+        { status: 429, headers: limit.retryAfter ? { "Retry-After": String(limit.retryAfter) } : undefined }
+      );
+    }
+
     const formData = await request.formData();
     const file = formData.get("file");
 

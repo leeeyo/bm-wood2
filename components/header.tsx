@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
 import { useAuth } from "@/lib/contexts/auth-context"
@@ -56,6 +57,7 @@ const navItems = [
 ]
 
 export function Header() {
+  const pathname = usePathname()
   const [scrolled, setScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const { isAuthenticated, user, logout } = useAuth()
@@ -72,9 +74,11 @@ export function Header() {
     setMobileMenuOpen(false)
   }
 
-  const scrollToTop = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault()
-    window.scrollTo({ top: 0, behavior: "smooth" })
+  const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (pathname === "/") {
+      e.preventDefault()
+      window.scrollTo({ top: 0, behavior: "smooth" })
+    }
   }
 
   const linkClass =
@@ -95,7 +99,7 @@ export function Header() {
           <Link
             href="/"
             className="transition-all duration-500"
-            onClick={scrollToTop}
+            onClick={handleLogoClick}
           >
             <Image
               src="/bmwood-header.png"

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/db/connection";
-import { Devis } from "@/lib/db/models";
+import { Devis, DevisCounter } from "@/lib/db/models";
 import { authenticateRequest, errorResponse, successResponse } from "@/lib/auth/middleware";
+import { checkRateLimit, isLikelyBot, getDevisLimit } from "@/lib/rate-limit";
 import { createDevisSchema, devisQuerySchema } from "@/lib/validations/devis.schema";
 import { ApiResponse, PaginatedResponse, UnauthorizedError } from "@/types/api.types";
 import { IDevis, DevisStatus } from "@/types/models.types";
@@ -126,6 +127,21 @@ export async function GET(request: NextRequest): Promise<NextResponse<PaginatedR
 // POST /api/devis - Submit quote request (public)
 export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse<IDevis>>> {
   try {
+    if (isLikelyBot(request)) {
+      return errorResponse("Requête non autorisée", 403);
+    }
+    const limit = checkRateLimit(request, getDevisLimit());
+    if (!limit.allowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Trop de requêtes. Veuillez réessayer plus tard.",
+          retryAfter: limit.retryAfter,
+        },
+        { status: 429, headers: limit.retryAfter ? { "Retry-After": String(limit.retryAfter) } : undefined }
+      );
+    }
+
     await connectDB();
 
     const body = await request.json();
@@ -146,20 +162,19 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
 
     const data = validationResult.data;
 
-    // Generate unique reference
+    // Generate unique reference atomically
     const date = new Date();
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
-    
-    // Count documents this month to generate sequential number
-    const count = await Devis.countDocuments({
-      createdAt: {
-        $gte: new Date(year, date.getMonth(), 1),
-        $lt: new Date(year, date.getMonth() + 1, 1),
-      },
-    });
-    
-    const reference = `DEV-${year}${month}-${String(count + 1).padStart(4, "0")}`;
+    const yearMonth = `${year}${month}`;
+
+    const counter = await DevisCounter.findOneAndUpdate(
+      { yearMonth },
+      { $inc: { seq: 1 } },
+      { new: true, upsert: true }
+    );
+
+    const reference = `DEV-${yearMonth}-${String(counter.seq).padStart(4, "0")}`;
 
     // Create devis with generated reference
     const devis = await Devis.create({

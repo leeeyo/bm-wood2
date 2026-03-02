@@ -101,10 +101,10 @@ export function Footer() {
         <div className="pt-8 border-t border-border flex flex-col md:flex-row md:items-center justify-between gap-4 text-sm text-muted-foreground">
           <p>© 2025 BM Wood. Tous droits réservés.</p>
           <div className="flex gap-6">
-            <Link href="#" className="hover:text-foreground transition-colors">
+            <Link href="/confidentialite" className="hover:text-foreground transition-colors">
               Confidentialité
             </Link>
-            <Link href="#" className="hover:text-foreground transition-colors">
+            <Link href="/conditions" className="hover:text-foreground transition-colors">
               Conditions
             </Link>
           </div>

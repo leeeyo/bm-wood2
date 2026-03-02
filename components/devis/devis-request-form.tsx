@@ -295,6 +295,7 @@ export function DevisRequestForm({ initialItems }: DevisRequestFormProps) {
           ...(item.notes && { notes: item.notes }),
         })),
         ...(notes && { notes }),
+        ...(attachments.length > 0 && { attachments }),
       }
 
       const response = await fetch("/api/devis", {

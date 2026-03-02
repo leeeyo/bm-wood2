@@ -22,7 +22,7 @@ const localBusinessJsonLd = {
   name: business.name,
   url: business.url,
   logo: `${business.url}/logo-bm-wood.svg`,
-  image: `${business.url}/bmwood-header.png`,
+  image: `${business.url}/og-image.png`,
   address: {
     "@type": "PostalAddress",
     streetAddress: business.streetAddress,
@@ -60,7 +60,7 @@ const websiteJsonLd = {
     },
     logo: {
       "@type": "ImageObject",
-      url: `${business.url}/logo-bmwood.svg`,
+      url: `${business.url}/logo-bm-wood.svg`,
     },
   },
 }

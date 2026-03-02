@@ -3,6 +3,7 @@ import { z } from "zod";
 import { sendContactFormEmail } from "@/lib/services/email.service";
 import { errorResponse, successResponse } from "@/lib/auth/middleware";
 import { ApiResponse } from "@/types/api.types";
+import { checkRateLimit, isLikelyBot, getContactLimit } from "@/lib/rate-limit";
 
 const contactSchema = z.object({
   firstName: z.string().min(1, "Le prénom est requis"),
@@ -15,6 +16,21 @@ const contactSchema = z.object({
 
 export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse<null>>> {
   try {
+    if (isLikelyBot(request)) {
+      return errorResponse("Requête non autorisée", 403);
+    }
+    const limit = checkRateLimit(request, getContactLimit());
+    if (!limit.allowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Trop de requêtes. Veuillez réessayer plus tard.",
+          retryAfter: limit.retryAfter,
+        },
+        { status: 429, headers: limit.retryAfter ? { "Retry-After": String(limit.retryAfter) } : undefined }
+      );
+    }
+
     const body = await request.json();
     const validationResult = contactSchema.safeParse(body);
 
