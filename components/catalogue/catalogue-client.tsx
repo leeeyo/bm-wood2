@@ -66,7 +66,6 @@ export function CatalogueProductList({
   initialPagination,
   initialFilters,
 }: CatalogueProductListProps) {
-  const searchParams = useSearchParams()
   const [products, setProducts] = useState<IProduct[]>(initialProducts)
   const [pagination, setPagination] = useState(initialPagination)
   const [isLoadingMore, setIsLoadingMore] = useState(false)

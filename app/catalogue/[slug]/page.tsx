@@ -6,6 +6,7 @@ import { Footer } from "@/components/footer"
 import { getCategoryBySlug, getProducts } from "@/lib/data"
 import { CategoryProductList } from "@/components/catalogue/category-client"
 import type { ICategory } from "@/types/models.types"
+import type { ProductFilterValues } from "@/components/catalogue/product-filters"
 import { notFound } from "next/navigation"
 
 interface CategoryPageProps {
@@ -40,7 +41,6 @@ function parseFilters(searchParams: {
       search: searchParams.search ?? "",
       sortBy,
       sortOrder,
-      categoryId: "",
     },
   }
 }

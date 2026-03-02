@@ -11,10 +11,10 @@ export const metadata: Metadata = {
   description:
     "Demandez un devis gratuit pour votre projet de menuiserie sur mesure. Cuisine, habillage mural, portes, salon, cache radiateur et dressing.",
   alternates: {
-    canonical: `${BASE_URL}/demander-un-devis`,
+    canonical: `${business.url}/demander-un-devis`,
   },
   openGraph: {
-    url: `${BASE_URL}/demander-un-devis`,
+    url: `${business.url}/demander-un-devis`,
     title: "Demander un devis gratuit | BM Wood",
     description:
       "Demandez un devis gratuit pour votre projet de menuiserie sur mesure. Cuisine, habillage mural, portes, salon, cache radiateur et dressing.",
