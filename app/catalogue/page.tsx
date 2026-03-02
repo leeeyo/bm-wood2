@@ -1,128 +1,75 @@
-"use client"
-
-import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { ArrowLeft, ArrowUpRight, Loader2 } from "lucide-react"
+import { ArrowLeft, ArrowUpRight } from "lucide-react"
+import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
-import { ICategory, IProduct } from "@/types/models.types"
-import { PaginatedResponse } from "@/types/api.types"
+import { getCategories, getProducts } from "@/lib/data"
 import {
-  ProductFilters,
-  ProductFilterValues,
-  DEFAULT_FILTER_VALUES,
-} from "@/components/catalogue/product-filters"
-import { ProductList } from "@/components/catalogue/product-list"
+  CatalogueFilters,
+  CatalogueProductList,
+} from "@/components/catalogue/catalogue-client"
+import type { ICategory, IProduct } from "@/types/models.types"
+import type { ProductFilterValues } from "@/components/catalogue/product-filters"
 
-export default function CataloguePage() {
-  const [categories, setCategories] = useState<ICategory[]>([])
-  const [products, setProducts] = useState<IProduct[]>([])
-  const [isLoadingCategories, setIsLoadingCategories] = useState(true)
-  const [isLoadingProducts, setIsLoadingProducts] = useState(true)
-  const [isLoadingMore, setIsLoadingMore] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [pagination, setPagination] = useState({
-    page: 1,
-    totalPages: 1,
-    total: 0,
-    hasNext: false,
-  })
-  const [filters, setFilters] = useState<ProductFilterValues>(DEFAULT_FILTER_VALUES)
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
+interface CataloguePageProps {
+  searchParams: Promise<{
+    page?: string
+    categoryId?: string
+    search?: string
+    sortBy?: string
+    sortOrder?: string
+  }>
+}
 
-  // Fetch categories
-  useEffect(() => {
-    async function fetchCategories() {
-      try {
-        const res = await fetch("/api/categories")
-        const data = await res.json()
-
-        if (data.success && data.data) {
-          const activeCategories = data.data.filter(
-            (cat: ICategory) => cat.isActive
-          )
-          setCategories(activeCategories)
-        } else {
-          setError("Impossible de charger les catégories")
-        }
-      } catch (err) {
-        console.error("Error fetching categories:", err)
-        setError("Une erreur est survenue lors du chargement")
-      } finally {
-        setIsLoadingCategories(false)
-      }
-    }
-
-    fetchCategories()
-  }, [])
-
-  // Fetch products (all categories, with filters)
-  const fetchProducts = useCallback(
-    async (page: number = 1) => {
-      try {
-        if (page === 1) {
-          setIsLoadingProducts(true)
-        } else {
-          setIsLoadingMore(true)
-        }
-
-        const params = new URLSearchParams({
-          isActive: "true",
-          page: page.toString(),
-          limit: "12",
-          sortBy: filters.sortBy,
-          sortOrder: filters.sortOrder,
-        })
-        if (filters.search.trim()) {
-          params.set("search", filters.search.trim())
-        }
-        if (filters.categoryId) {
-          params.set("categoryId", filters.categoryId)
-        }
-
-        const res = await fetch(`/api/products?${params}`)
-        const data: PaginatedResponse<IProduct> = await res.json()
-
-        if (data.success && data.data) {
-          if (page === 1) {
-            setProducts(data.data)
-          } else {
-            setProducts((prev) => [...prev, ...data.data!])
-          }
-          setPagination({
-            page: data.pagination.page,
-            totalPages: data.pagination.totalPages,
-            total: data.pagination.total,
-            hasNext: data.pagination.hasNext,
-          })
-        } else if (page === 1) {
-          setProducts([])
-        }
-      } catch (err) {
-        console.error("Error fetching products:", err)
-        if (page === 1) {
-          setProducts([])
-        }
-      } finally {
-        setIsLoadingProducts(false)
-        setIsLoadingMore(false)
-      }
-    },
-    [filters]
+function parseFilters(searchParams: {
+  page?: string
+  categoryId?: string
+  search?: string
+  sortBy?: string
+  sortOrder?: string
+}): { page: number; filters: ProductFilterValues } {
+  const page = Math.max(1, parseInt(searchParams.page ?? "1", 10) || 1)
+  const sortBy = (["name", "createdAt", "updatedAt"].includes(
+    searchParams.sortBy ?? ""
   )
+    ? searchParams.sortBy
+    : "createdAt") as ProductFilterValues["sortBy"]
+  const sortOrder = (["asc", "desc"].includes(searchParams.sortOrder ?? "")
+    ? searchParams.sortOrder
+    : "desc") as ProductFilterValues["sortOrder"]
 
-  useEffect(() => {
-    fetchProducts(1)
-  }, [fetchProducts])
+  return {
+    page,
+    filters: {
+      search: searchParams.search ?? "",
+      sortBy,
+      sortOrder,
+      categoryId: searchParams.categoryId ?? "",
+    },
+  }
+}
 
-  const loadMore = useCallback(() => {
-    if (!pagination.hasNext || isLoadingMore) return
-    fetchProducts(pagination.page + 1)
-  }, [pagination, isLoadingMore, fetchProducts])
+export default async function CataloguePage({ searchParams }: CataloguePageProps) {
+  const params = await searchParams
+  const { page, filters } = parseFilters(params)
+
+  const [categoriesResult, productsResult] = await Promise.all([
+    getCategories(),
+    getProducts({
+      page,
+      limit: 12,
+      categoryId: filters.categoryId || undefined,
+      search: filters.search || undefined,
+      sortBy: filters.sortBy,
+      sortOrder: filters.sortOrder,
+    }),
+  ])
+
+  const categories = categoriesResult
+  const { data: products, pagination } = productsResult
 
   return (
     <main className="min-h-screen">
-      {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-primary py-4">
         <nav className="container mx-auto px-6 flex items-center justify-between">
           <Link href="/" className="transition-all duration-300">
@@ -145,7 +92,6 @@ export default function CataloguePage() {
         </nav>
       </header>
 
-      {/* Hero Section */}
       <section className="pt-32 pb-16 md:pt-40 md:pb-20 bg-primary text-primary-foreground">
         <div className="container mx-auto px-6 md:px-12">
           <div className="max-w-3xl mx-auto text-center">
@@ -166,25 +112,9 @@ export default function CataloguePage() {
         </div>
       </section>
 
-      {/* Categories Grid */}
       <section className="py-16 md:py-24">
         <div className="container mx-auto px-6 md:px-12">
-          {isLoadingCategories ? (
-            <div className="flex flex-col items-center justify-center py-20">
-              <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
-              <p className="text-muted-foreground">Chargement des catégories...</p>
-            </div>
-          ) : error ? (
-            <div className="text-center py-20">
-              <p className="text-destructive mb-4">{error}</p>
-              <button
-                onClick={() => window.location.reload()}
-                className="text-sm text-primary hover:underline"
-              >
-                Réessayer
-              </button>
-            </div>
-          ) : categories.length === 0 ? (
+          {categories.length === 0 ? (
             <div className="text-center py-20">
               <p className="text-muted-foreground">
                 Aucune catégorie disponible pour le moment.
@@ -192,7 +122,7 @@ export default function CataloguePage() {
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-              {categories.map((category) => (
+              {categories.map((category: ICategory) => (
                 <Link
                   key={category._id.toString()}
                   href={`/catalogue/${category.slug}`}
@@ -220,9 +150,9 @@ export default function CataloguePage() {
 
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <h3 className="text-xl font-medium mb-2 group-hover:underline underline-offset-4">
+                        <h2 className="text-xl font-medium mb-2 group-hover:underline underline-offset-4">
                           {category.name}
-                        </h3>
+                        </h2>
                         {category.description && (
                           <p className="text-muted-foreground text-sm line-clamp-2">
                             {category.description}
@@ -239,7 +169,6 @@ export default function CataloguePage() {
         </div>
       </section>
 
-      {/* All Products Section */}
       <section className="py-16 md:py-24 pb-24 md:pb-24 bg-muted/20">
         <div className="container mx-auto px-6 md:px-12">
           <h2
@@ -249,40 +178,29 @@ export default function CataloguePage() {
             Tous les produits
           </h2>
 
-          <ProductFilters
-            filters={filters}
-            onFiltersChange={setFilters}
+          <CatalogueFilters
+            initialFilters={filters}
             categories={categories}
-            showCategoryFilter={true}
             productCount={pagination.total}
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
+            showCategoryFilter={true}
           />
 
-          {isLoadingProducts ? (
-            <div className="flex flex-col items-center justify-center py-20">
-              <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
-              <p className="text-muted-foreground">Chargement des produits...</p>
-            </div>
-          ) : products.length === 0 ? (
+          {products.length === 0 ? (
             <div className="text-center py-20">
               <p className="text-muted-foreground">
                 Aucun produit ne correspond à vos critères.
               </p>
             </div>
           ) : (
-            <ProductList
-              products={products}
-              viewMode={viewMode}
-              loadMore={loadMore}
-              hasNext={pagination.hasNext}
-              isLoadingMore={isLoadingMore}
+            <CatalogueProductList
+              initialProducts={products}
+              initialPagination={pagination}
+              initialFilters={filters}
             />
           )}
         </div>
       </section>
 
-      {/* CTA Section - extra pb on mobile for FAB */}
       <section className="py-12 pb-20 md:pb-12 bg-muted/30 border-t">
         <div className="container mx-auto px-6 md:px-12">
           <div className="max-w-3xl mx-auto text-center">

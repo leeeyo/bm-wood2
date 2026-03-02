@@ -19,7 +19,7 @@ const organizationJsonLd = {
   "@type": "Organization",
   name: "BM Wood",
   url: BASE_URL,
-  logo: `${BASE_URL}/logo-bmwood.svg`,
+  logo: `${BASE_URL}/logo-bm-wood.svg`,
   address: {
     "@type": "PostalAddress",
     addressLocality: "Ariana",

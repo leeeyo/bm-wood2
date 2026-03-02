@@ -98,7 +98,7 @@ export default async function BlogArticleLayout({
             name: "BM Wood",
             logo: {
               "@type": "ImageObject",
-              url: `${BASE_URL}/logo-bmwood.svg`,
+              url: `${BASE_URL}/logo-bm-wood.svg`,
             },
           },
           mainEntityOfPage: {
