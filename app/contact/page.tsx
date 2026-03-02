@@ -3,21 +3,18 @@ import { Mail, Phone, MapPin } from "lucide-react"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { ContactForm } from "@/components/contact/contact-form"
-
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bmwood.tn"
+import { business } from "@/lib/config/business"
 
 export const metadata: Metadata = {
   title: "Contact — BM Wood",
-  description:
-    "Contactez BM Wood pour vos projets de menuiserie sur mesure. Avenue Ibn Khaldoun, Ariana. Tél: 98 134 335 / 70 870 210.",
+  description: `Contactez BM Wood pour vos projets de menuiserie sur mesure. ${business.addressFormatted}. Tél: ${business.phonesFormatted}.`,
   alternates: {
-    canonical: `${BASE_URL}/contact`,
+    canonical: `${business.url}/contact`,
   },
   openGraph: {
-    url: `${BASE_URL}/contact`,
+    url: `${business.url}/contact`,
     title: "Contact | BM Wood — Menuiserie sur mesure",
-    description:
-      "Contactez BM Wood pour vos projets de menuiserie sur mesure. Avenue Ibn Khaldoun, Ariana.",
+    description: `Contactez BM Wood pour vos projets de menuiserie sur mesure. ${business.addressFormatted}.`,
   },
 }
 
@@ -59,7 +56,7 @@ export default function ContactPage() {
               </h2>
               <div className="space-y-6">
                 <a
-                  href="mailto:contact@bmwood.tn"
+                  href={`mailto:${business.email}`}
                   className="flex items-start gap-4 group"
                 >
                   <div className="shrink-0 w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
@@ -68,12 +65,12 @@ export default function ContactPage() {
                   <div>
                     <p className="font-medium mb-1">Email</p>
                     <p className="text-muted-foreground group-hover:text-foreground transition-colors">
-                      contact@bmwood.tn
+                      {business.email}
                     </p>
                   </div>
                 </a>
                 <a
-                  href="tel:98134335"
+                  href={`tel:${business.primaryPhone}`}
                   className="flex items-start gap-4 group"
                 >
                   <div className="shrink-0 w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
@@ -82,7 +79,7 @@ export default function ContactPage() {
                   <div>
                     <p className="font-medium mb-1">Téléphone</p>
                     <p className="text-muted-foreground group-hover:text-foreground transition-colors">
-                      98 134 335 / 70 870 210
+                      {business.phonesFormatted}
                     </p>
                   </div>
                 </a>
@@ -93,7 +90,7 @@ export default function ContactPage() {
                   <div>
                     <p className="font-medium mb-1">Adresse</p>
                     <p className="text-muted-foreground">
-                      Avenue Ibn Khaldoun, Ariana
+                      {business.addressFormatted}
                     </p>
                   </div>
                 </div>
@@ -118,7 +115,7 @@ export default function ContactPage() {
       <section className="py-0">
         <div className="w-full h-[400px] md:h-[500px] relative">
           <iframe
-            src="https://www.google.com/maps?q=BM+WOOD+Avenue+Ibn+Khaldoun+Ariana+Tunisia&output=embed"
+            src={`https://www.google.com/maps?q=${business.mapsQuery}&output=embed`}
             width="100%"
             height="100%"
             style={{ border: 0 }}
@@ -129,12 +126,12 @@ export default function ContactPage() {
             className="absolute inset-0"
           />
           <div className="absolute bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-80 bg-background/95 backdrop-blur-sm rounded-lg p-4 shadow-lg">
-            <p className="font-medium mb-1">BM Wood</p>
+            <p className="font-medium mb-1">{business.name}</p>
             <p className="text-sm text-muted-foreground">
-              Avenue Ibn Khaldoun, Ariana
+              {business.addressFormatted}
             </p>
             <a
-              href="https://maps.app.goo.gl/RzkSTCyQ5j9XbXW19"
+              href={business.mapsLink}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-sm text-primary hover:underline mt-2"

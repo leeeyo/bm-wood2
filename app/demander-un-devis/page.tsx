@@ -4,8 +4,7 @@ import Image from "next/image"
 import { ArrowLeft, MapPin } from "lucide-react"
 import { DevisRequestForm, InitialDevisItem } from "@/components/devis/devis-request-form"
 import { Footer } from "@/components/footer"
-
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bmwood.tn"
+import { business } from "@/lib/config/business"
 
 export const metadata: Metadata = {
   title: "Demander un devis",
@@ -125,16 +124,16 @@ export default async function DemanderUnDevisPage({ searchParams }: DemanderUnDe
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
-                href="mailto:contact@bmwood.tn"
+                href={`mailto:${business.email}`}
                 className="inline-flex items-center justify-center gap-2 text-sm px-6 py-3 border border-foreground/20 hover:bg-foreground hover:text-background transition-colors"
               >
-                contact@bmwood.tn
+                {business.email}
               </a>
               <a
-                href="tel:98134335"
+                href={`tel:${business.primaryPhone}`}
                 className="inline-flex items-center justify-center gap-2 text-sm px-6 py-3 border border-foreground/20 hover:bg-foreground hover:text-background transition-colors"
               >
-                98 134 335
+                {business.primaryPhoneFormatted}
               </a>
             </div>
           </div>
@@ -152,29 +151,29 @@ export default async function DemanderUnDevisPage({ searchParams }: DemanderUnDe
               Visitez notre showroom
             </h2>
             <p className="text-muted-foreground text-center mb-8">
-              Venez découvrir nos modèles et finitions à Avenue Ibn Khaldoun, Ariana
+              Venez découvrir nos modèles et finitions à {business.addressFormatted}
             </p>
             <div className="rounded-lg overflow-hidden border shadow-lg">
               <div className="w-full h-[300px] md:h-[350px] relative">
                 <iframe
-                  src="https://www.google.com/maps?q=BM+WOOD+Avenue+Ibn+Khaldoun+Ariana+Tunisia&output=embed"
+                  src={`https://www.google.com/maps?q=${business.mapsQuery}&output=embed`}
                   width="100%"
                   height="100%"
                   style={{ border: 0 }}
                   allowFullScreen
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
-                  title="BM Wood Showroom - Avenue Ibn Khaldoun, Ariana"
+                  title={`${business.name} Showroom - ${business.addressFormatted}`}
                   className="absolute inset-0"
                 />
               </div>
               <div className="p-4 bg-muted/30 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
-                  <p className="font-medium">BM Wood</p>
-                  <p className="text-sm text-muted-foreground">Riadh Andalous, Tunis</p>
+                  <p className="font-medium">{business.name}</p>
+                  <p className="text-sm text-muted-foreground">{business.addressFormatted}</p>
                 </div>
                 <a
-                  href="https://maps.app.goo.gl/RzkSTCyQ5j9XbXW19"
+                  href={business.mapsLink}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 text-sm text-primary hover:underline font-medium"

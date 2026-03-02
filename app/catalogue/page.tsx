@@ -193,6 +193,7 @@ export default async function CataloguePage({ searchParams }: CataloguePageProps
             </div>
           ) : (
             <CatalogueProductList
+              key={`${filters.categoryId}-${filters.search}-${filters.sortBy}-${filters.sortOrder}`}
               initialProducts={products}
               initialPagination={pagination}
               initialFilters={filters}

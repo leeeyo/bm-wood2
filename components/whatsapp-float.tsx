@@ -1,12 +1,12 @@
 "use client"
 
 import Link from "next/link"
+import { business } from "@/lib/config/business"
 
-const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "21698134335"
 const MESSAGE = "Bonjour, je souhaite obtenir plus d'informations sur vos créations sur mesure."
 
 export function WhatsAppFloat() {
-  const href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(MESSAGE)}`
+  const href = `https://wa.me/${business.whatsappNumber}?text=${encodeURIComponent(MESSAGE)}`
 
   return (
     <Link

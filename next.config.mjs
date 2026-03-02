@@ -4,7 +4,9 @@ const nextConfig = {
     ignoreBuildErrors: false,
   },
   images: {
-    unoptimized: true,
+    unoptimized: false,
+    // Add remotePatterns for external image hosts if needed, e.g.:
+    // remotePatterns: [{ protocol: "https", hostname: "your-cdn.com", pathname: "/**" }],
   },
 }
 

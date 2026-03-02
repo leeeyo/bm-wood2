@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
+import { business } from "@/lib/config/business"
 
 export function Footer() {
   const [revealed, setRevealed] = useState(false)
@@ -70,27 +71,27 @@ export function Footer() {
             <h4 className="text-sm font-medium mb-4">Contact</h4>
             <ul className="space-y-3 text-sm text-muted-foreground">
               <li>
-                <a href="mailto:contact@bmwood.tn" className="hover:text-foreground transition-colors">
-                  contact@bmwood.tn
+                <a href={`mailto:${business.email}`} className="hover:text-foreground transition-colors">
+                  {business.email}
                 </a>
               </li>
               <li>
-                <a href="tel:98134337" className="hover:text-foreground transition-colors">
-                  98 134 337
+                <a href={`tel:${business.primaryPhone}`} className="hover:text-foreground transition-colors">
+                  {business.primaryPhoneFormatted}
                 </a>
               </li>
-              <li>
-                <a href="tel:98134335" className="hover:text-foreground transition-colors">
-                  98 134 335
-                </a>
-              </li>
-              <li>
-                <a href="tel:70870210" className="hover:text-foreground transition-colors">
-                  70 870 210
-                </a>
-              </li>
+              {business.secondaryPhones.map((phone) => (
+                <li key={phone}>
+                  <a
+                    href={`tel:${phone.replace(/\s/g, "")}`}
+                    className="hover:text-foreground transition-colors"
+                  >
+                    {phone}
+                  </a>
+                </li>
+              ))}
               <li className="text-muted-foreground">
-                Avenue Ibn Khaldoun, Ariana
+                {business.addressFormatted}
               </li>
             </ul>
           </div>

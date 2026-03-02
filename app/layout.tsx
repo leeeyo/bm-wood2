@@ -9,42 +9,58 @@ import { WhatsAppFloat } from "@/components/whatsapp-float"
 import { JsonLd } from "@/components/seo/json-ld"
 import "./globals.css"
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://bmwood.tn"
+import { business } from "@/lib/config/business"
+
+const BASE_URL = business.url
 const defaultTitle = "BM Wood — Menuiserie et Agencement sur Mesure"
 const defaultDescription =
   "BM Wood, spécialiste en menuiserie et agencement sur mesure à Ariana. Cuisine, habillage mural, portes, salon, cache radiateur et dressing."
 
-const organizationJsonLd = {
+const localBusinessJsonLd = {
   "@context": "https://schema.org",
-  "@type": "Organization",
-  name: "BM Wood",
-  url: BASE_URL,
-  logo: `${BASE_URL}/logo-bm-wood.svg`,
+  "@type": "LocalBusiness",
+  name: business.name,
+  url: business.url,
+  logo: `${business.url}/logo-bm-wood.svg`,
+  image: `${business.url}/bmwood-header.png`,
   address: {
     "@type": "PostalAddress",
-    addressLocality: "Ariana",
-    addressRegion: "Tunis",
-    addressCountry: "TN",
+    streetAddress: business.streetAddress,
+    addressLocality: business.locality,
+    addressRegion: business.region,
+    addressCountry: business.country,
   },
+  telephone: `+${business.whatsappNumber.replace(/^216/, "216 ")}`,
+  email: business.email,
   contactPoint: {
     "@type": "ContactPoint",
-    email: "contact@bmwood.tn",
+    telephone: `+216${business.primaryPhone}`,
+    email: business.email,
     contactType: "customer service",
+    areaServed: business.locality,
   },
 }
 
 const websiteJsonLd = {
   "@context": "https://schema.org",
   "@type": "WebSite",
-  name: "BM Wood",
-  url: BASE_URL,
+  name: business.name,
+  url: business.url,
   description: defaultDescription,
   publisher: {
-    "@type": "Organization",
-    name: "BM Wood",
+    "@type": "LocalBusiness",
+    name: business.name,
+    telephone: business.primaryPhoneFormatted,
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: business.streetAddress,
+      addressLocality: business.locality,
+      addressRegion: business.region,
+      addressCountry: business.country,
+    },
     logo: {
       "@type": "ImageObject",
-      url: `${BASE_URL}/logo-bmwood.svg`,
+      url: `${business.url}/logo-bmwood.svg`,
     },
   },
 }
@@ -143,7 +159,7 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body className={`${playfairDisplay.variable} ${literata.variable} ${tenorSans.variable} font-sans antialiased`}>
-        <JsonLd data={[organizationJsonLd, websiteJsonLd]} />
+        <JsonLd data={[localBusinessJsonLd, websiteJsonLd]} />
         <AuthProvider>
           {children}
           <WhatsAppFloat />
