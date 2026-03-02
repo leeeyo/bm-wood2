@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 import connectDB from "@/lib/db/connection";
 import { Product, Category } from "@/lib/db/models";
-import { authenticateRequest, errorResponse, successResponse } from "@/lib/auth/middleware";
+import { authenticateRequest, requireRole, errorResponse, successResponse } from "@/lib/auth/middleware";
 import { updateProductSchema } from "@/lib/validations/product.schema";
-import { ApiResponse, UnauthorizedError, NotFoundError, ConflictError, RouteContext } from "@/types/api.types";
-import { IProduct } from "@/types/models.types";
+import { ApiResponse, UnauthorizedError, ForbiddenError, NotFoundError, ConflictError, RouteContext } from "@/types/api.types";
+import { IProduct, UserRole } from "@/types/models.types";
 
 // GET /api/products/:id - Get single product (public)
 export async function GET(
@@ -51,10 +51,14 @@ export async function PUT(
 
     // Authenticate
     try {
-      authenticateRequest(request);
+      const authUser = authenticateRequest(request);
+      requireRole(authUser, [UserRole.ADMIN, UserRole.MANAGER]);
     } catch (error) {
       if (error instanceof UnauthorizedError) {
         return errorResponse(error.message, 401);
+      }
+      if (error instanceof ForbiddenError) {
+        return errorResponse(error.message, 403);
       }
       throw error;
     }
@@ -123,6 +127,9 @@ export async function PUT(
     if (error instanceof ConflictError) {
       return errorResponse(error.message, 409);
     }
+    if (error instanceof ForbiddenError) {
+      return errorResponse(error.message, 403);
+    }
 
     console.error("Update product error:", error);
     return errorResponse("Internal server error", 500);
@@ -139,10 +146,14 @@ export async function DELETE(
 
     // Authenticate
     try {
-      authenticateRequest(request);
+      const authUser = authenticateRequest(request);
+      requireRole(authUser, [UserRole.ADMIN, UserRole.MANAGER]);
     } catch (error) {
       if (error instanceof UnauthorizedError) {
         return errorResponse(error.message, 401);
+      }
+      if (error instanceof ForbiddenError) {
+        return errorResponse(error.message, 403);
       }
       throw error;
     }
@@ -163,6 +174,9 @@ export async function DELETE(
   } catch (error) {
     if (error instanceof NotFoundError) {
       return errorResponse(error.message, 404);
+    }
+    if (error instanceof ForbiddenError) {
+      return errorResponse(error.message, 403);
     }
 
     console.error("Delete product error:", error);

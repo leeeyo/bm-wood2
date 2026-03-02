@@ -1,19 +1,40 @@
+"use client"
+
+import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 
 export function Footer() {
+  const [revealed, setRevealed] = useState(false)
+  const footerRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) setRevealed(true)
+      },
+      { threshold: 0.1 },
+    )
+    if (footerRef.current) observer.observe(footerRef.current)
+    return () => observer.disconnect()
+  }, [])
+
   return (
-    <footer className="py-16 md:py-24 border-t border-border">
+    <footer
+      ref={footerRef}
+      className={`py-12 md:py-16 xl:py-14 border-t border-border transition-all duration-700 ${
+        revealed ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+      }`}
+    >
       <div className="container mx-auto px-6 md:px-12">
         <div className="grid md:grid-cols-4 gap-12 mb-16">
           {/* Brand */}
-          <div className="md:col-span-2">
-            <Link href="/" className="inline-block mb-6 flex justify-center">
+          <div className="md:col-span-2 flex flex-col items-center text-center">
+            <Link href="/" className="mb-6 flex justify-center">
               <Image src="/logo-bm-wood.png" alt="BM Wood" width={200} height={60} className="w-auto h-12 md:h-16" />
             </Link>
-            <p className="text-muted-foreground leading-relaxed max-w-sm">
-              We design spaces that elevate living. A refined architectural experience where form, light, and intention
-              meet.
+            <p className="text-muted-foreground leading-relaxed max-w-sm text-center">
+              BM WOOD Pour toutes vos envies
             </p>
           </div>
 
@@ -22,22 +43,22 @@ export function Footer() {
             <h4 className="text-sm font-medium mb-4">Navigation</h4>
             <ul className="space-y-3 text-sm text-muted-foreground">
               <li>
-                <Link href="#projects" className="hover:text-foreground transition-colors">
-                  Catégories
+                <Link href="/realisations" className="hover:text-foreground transition-colors">
+                  Réalisations
                 </Link>
               </li>
               <li>
-                <Link href="#about" className="hover:text-foreground transition-colors">
-                  À propos
+                <Link href="/catalogue" className="hover:text-foreground transition-colors">
+                  Catalogue
                 </Link>
               </li>
               <li>
-                <Link href="#services" className="hover:text-foreground transition-colors">
-                  Services
+                <Link href="/demander-un-devis" className="hover:text-foreground transition-colors">
+                  Demander un devis
                 </Link>
               </li>
               <li>
-                <Link href="#contact" className="hover:text-foreground transition-colors">
+                <Link href="/contact" className="hover:text-foreground transition-colors">
                   Contact
                 </Link>
               </li>
@@ -54,6 +75,11 @@ export function Footer() {
                 </a>
               </li>
               <li>
+                <a href="tel:98134337" className="hover:text-foreground transition-colors">
+                  98 134 337
+                </a>
+              </li>
+              <li>
                 <a href="tel:98134335" className="hover:text-foreground transition-colors">
                   98 134 335
                 </a>
@@ -64,7 +90,7 @@ export function Footer() {
                 </a>
               </li>
               <li className="text-muted-foreground">
-                Riadh Andalous, Tunis
+                Avenue Ibn Khaldoun, Ariana
               </li>
             </ul>
           </div>

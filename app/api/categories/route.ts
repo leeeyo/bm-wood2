@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/db/connection";
 import { Category } from "@/lib/db/models";
-import { authenticateRequest, errorResponse, successResponse } from "@/lib/auth/middleware";
+import { authenticateRequest, requireRole, errorResponse, successResponse } from "@/lib/auth/middleware";
 import { createCategorySchema } from "@/lib/validations/category.schema";
-import { ApiResponse, UnauthorizedError, ConflictError } from "@/types/api.types";
-import { ICategory } from "@/types/models.types";
+import { ApiResponse, UnauthorizedError, ForbiddenError, ConflictError } from "@/types/api.types";
+import { ICategory, UserRole } from "@/types/models.types";
 
 // GET /api/categories - List all categories (public)
 export async function GET(): Promise<NextResponse<ApiResponse<ICategory[]>>> {
@@ -29,10 +29,14 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
 
     // Authenticate
     try {
-      authenticateRequest(request);
+      const authUser = authenticateRequest(request);
+      requireRole(authUser, [UserRole.ADMIN, UserRole.MANAGER]);
     } catch (error) {
       if (error instanceof UnauthorizedError) {
         return errorResponse(error.message, 401);
+      }
+      if (error instanceof ForbiddenError) {
+        return errorResponse(error.message, 403);
       }
       throw error;
     }
@@ -77,6 +81,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
   } catch (error) {
     if (error instanceof ConflictError) {
       return errorResponse(error.message, 409);
+    }
+    if (error instanceof ForbiddenError) {
+      return errorResponse(error.message, 403);
     }
 
     console.error("Create category error:", error);

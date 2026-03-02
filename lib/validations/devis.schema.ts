@@ -51,6 +51,7 @@ export const devisQuerySchema = z.object({
   assignedTo: z.string().regex(/^[0-9a-fA-F]{24}$/).optional(),
   dateFrom: z.string().datetime().optional(),
   dateTo: z.string().datetime().optional(),
+  search: z.string().min(1).max(100).optional(),
 });
 
 export type CreateDevisInput = z.infer<typeof createDevisSchema>;

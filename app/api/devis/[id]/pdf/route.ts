@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 import connectDB from "@/lib/db/connection";
 import { Devis } from "@/lib/db/models";
-import { authenticateRequest, errorResponse } from "@/lib/auth/middleware";
+import { authenticateRequest, requireRole, errorResponse } from "@/lib/auth/middleware";
 import { generateDevisPdf, getDevisPdfFilename } from "@/lib/services/pdf.service";
-import { UnauthorizedError, NotFoundError, RouteContext } from "@/types/api.types";
-import { IDevis, DevisStatus } from "@/types/models.types";
+import { UnauthorizedError, ForbiddenError, NotFoundError, RouteContext } from "@/types/api.types";
+import { IDevis, DevisStatus, UserRole } from "@/types/models.types";
 
 // GET /api/devis/:id/pdf - Generate and download PDF (protected)
 export async function GET(
@@ -17,10 +17,14 @@ export async function GET(
 
     // Authenticate
     try {
-      authenticateRequest(request);
+      const authUser = authenticateRequest(request);
+      requireRole(authUser, [UserRole.ADMIN, UserRole.MANAGER]);
     } catch (error) {
       if (error instanceof UnauthorizedError) {
         return errorResponse(error.message, 401);
+      }
+      if (error instanceof ForbiddenError) {
+        return errorResponse(error.message, 403);
       }
       throw error;
     }
@@ -71,6 +75,9 @@ export async function GET(
   } catch (error) {
     if (error instanceof NotFoundError) {
       return errorResponse(error.message, 404);
+    }
+    if (error instanceof ForbiddenError) {
+      return errorResponse(error.message, 403);
     }
 
     console.error("Generate PDF error:", error);

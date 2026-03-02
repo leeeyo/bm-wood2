@@ -7,13 +7,27 @@ export const createCategorySchema = z.object({
     .max(100, "Name cannot exceed 100 characters"),
   slug: z
     .string()
-    .regex(/^[a-z0-9-]+$/, "Slug can only contain lowercase letters, numbers, and hyphens")
-    .optional(),
+    .optional()
+    .transform((val) => (val === "" || !val ? undefined : val))
+    .refine(
+      (val) => !val || /^[a-z0-9-]+$/.test(val),
+      "Slug can only contain lowercase letters, numbers, and hyphens"
+    ),
   description: z
     .string()
     .max(500, "Description cannot exceed 500 characters")
     .optional(),
-  image: z.string().url("Image must be a valid URL").optional(),
+  image: z
+    .string()
+    .optional()
+    .refine(
+      (val) =>
+        !val ||
+        val.startsWith("/") ||
+        val.startsWith("http://") ||
+        val.startsWith("https://"),
+      "Image must be a valid URL or path (e.g. /images/... or https://...)"
+    ),
   isActive: z.boolean().optional().default(true),
   order: z.number().int().min(0).optional().default(0),
 });

@@ -45,7 +45,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<PaginatedR
       );
     }
 
-    const { page, limit, sortBy, sortOrder, status, assignedTo, dateFrom, dateTo } = validationResult.data;
+    const { page, limit, sortBy, sortOrder, status, assignedTo, dateFrom, dateTo, search } = validationResult.data;
 
     // Build filter query
     const filter: Record<string, unknown> = {};
@@ -67,6 +67,17 @@ export async function GET(request: NextRequest): Promise<NextResponse<PaginatedR
         dateFilter.$lte = new Date(dateTo);
       }
       filter.createdAt = dateFilter;
+    }
+
+    // Search by client email, first name, last name, or reference
+    if (search) {
+      const searchRegex = { $regex: search, $options: "i" };
+      filter.$or = [
+        { "client.email": searchRegex },
+        { "client.firstName": searchRegex },
+        { "client.lastName": searchRegex },
+        { reference: searchRegex },
+      ];
     }
 
     // Calculate pagination

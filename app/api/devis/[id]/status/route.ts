@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 import connectDB from "@/lib/db/connection";
 import { Devis } from "@/lib/db/models";
-import { authenticateRequest, errorResponse, successResponse } from "@/lib/auth/middleware";
+import { authenticateRequest, requireRole, errorResponse, successResponse } from "@/lib/auth/middleware";
 import { updateDevisStatusSchema } from "@/lib/validations/devis.schema";
-import { ApiResponse, UnauthorizedError, NotFoundError, ValidationError, RouteContext } from "@/types/api.types";
-import { IDevis, DevisStatus } from "@/types/models.types";
+import { ApiResponse, UnauthorizedError, ForbiddenError, NotFoundError, ValidationError, RouteContext } from "@/types/api.types";
+import { IDevis, DevisStatus, UserRole } from "@/types/models.types";
 import { sendDevisStatusUpdateEmail } from "@/lib/services/email.service";
 
 // Valid status transitions
@@ -32,10 +32,14 @@ export async function PATCH(
 
     // Authenticate
     try {
-      authenticateRequest(request);
+      const authUser = authenticateRequest(request);
+      requireRole(authUser, [UserRole.ADMIN, UserRole.MANAGER]);
     } catch (error) {
       if (error instanceof UnauthorizedError) {
         return errorResponse(error.message, 401);
+      }
+      if (error instanceof ForbiddenError) {
+        return errorResponse(error.message, 403);
       }
       throw error;
     }
@@ -109,6 +113,9 @@ export async function PATCH(
     }
     if (error instanceof ValidationError) {
       return errorResponse(error.message, 400);
+    }
+    if (error instanceof ForbiddenError) {
+      return errorResponse(error.message, 403);
     }
 
     console.error("Update devis status error:", error);

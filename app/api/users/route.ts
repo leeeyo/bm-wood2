@@ -71,7 +71,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<PaginatedR
       );
     }
 
-    const { page, limit, sortBy, sortOrder, role, isActive } = validationResult.data;
+    const { page, limit, sortBy, sortOrder, role, isActive, search } = validationResult.data;
 
     // Build filter query
     const filter: Record<string, unknown> = {};
@@ -82,6 +82,15 @@ export async function GET(request: NextRequest): Promise<NextResponse<PaginatedR
 
     if (typeof isActive === "boolean") {
       filter.isActive = isActive;
+    }
+
+    // Add search filter for email, firstName, lastName
+    if (search) {
+      filter.$or = [
+        { email: { $regex: search, $options: "i" } },
+        { firstName: { $regex: search, $options: "i" } },
+        { lastName: { $regex: search, $options: "i" } },
+      ];
     }
 
     // Calculate pagination

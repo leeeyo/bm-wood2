@@ -45,6 +45,7 @@ export const userQuerySchema = z.object({
   sortOrder: z.enum(["asc", "desc"]).optional().default("desc"),
   role: z.nativeEnum(UserRole).optional(),
   isActive: z.coerce.boolean().optional(),
+  search: z.string().optional(),
 });
 
 export type CreateUserInput = z.infer<typeof createUserSchema>;

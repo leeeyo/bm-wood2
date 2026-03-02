@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/db/connection";
 import { Media } from "@/lib/db/models";
-import { authenticateRequest, errorResponse, successResponse } from "@/lib/auth/middleware";
+import { authenticateRequest, requireRole, errorResponse, successResponse } from "@/lib/auth/middleware";
 import { saveFile, isUploadError } from "@/lib/services/upload.service";
-import { ApiResponse, UnauthorizedError } from "@/types/api.types";
-import { IMedia } from "@/types/models.types";
+import { ApiResponse, UnauthorizedError, ForbiddenError } from "@/types/api.types";
+import { IMedia, UserRole } from "@/types/models.types";
 
 // POST /api/uploads - Upload file (protected)
 export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse<IMedia>>> {
@@ -15,9 +15,13 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
     let authUser;
     try {
       authUser = authenticateRequest(request);
+      requireRole(authUser, [UserRole.ADMIN, UserRole.MANAGER]);
     } catch (error) {
       if (error instanceof UnauthorizedError) {
         return errorResponse(error.message, 401);
+      }
+      if (error instanceof ForbiddenError) {
+        return errorResponse(error.message, 403);
       }
       throw error;
     }
@@ -61,33 +65,46 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
 }
 
 // GET /api/uploads - List all uploads (protected)
-export async function GET(request: NextRequest): Promise<NextResponse<ApiResponse<IMedia[]>>> {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     await connectDB();
 
     // Authenticate
     try {
-      authenticateRequest(request);
+      const authUser = authenticateRequest(request);
+      requireRole(authUser, [UserRole.ADMIN, UserRole.MANAGER]);
     } catch (error) {
       if (error instanceof UnauthorizedError) {
         return errorResponse(error.message, 401);
+      }
+      if (error instanceof ForbiddenError) {
+        return errorResponse(error.message, 403);
       }
       throw error;
     }
 
     const { searchParams } = new URL(request.url);
     const type = searchParams.get("type");
-    const page = parseInt(searchParams.get("page") || "1", 10);
-    const limit = parseInt(searchParams.get("limit") || "20", 10);
+    const search = searchParams.get("search");
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "20", 10)));
 
     // Build filter
-    const filter: Record<string, string> = {};
+    const filter: Record<string, unknown> = {};
     if (type && (type === "image" || type === "document")) {
       filter.type = type;
+    }
+    if (search) {
+      // Search by original filename (case-insensitive)
+      filter.originalName = { $regex: search, $options: "i" };
     }
 
     // Calculate pagination
     const skip = (page - 1) * limit;
+
+    // Get total count for pagination
+    const total = await Media.countDocuments(filter);
+    const totalPages = Math.ceil(total / limit);
 
     // Fetch media
     const media = await Media.find(filter)
@@ -97,8 +114,22 @@ export async function GET(request: NextRequest): Promise<NextResponse<ApiRespons
       .populate("uploadedBy", "firstName lastName email")
       .lean<IMedia[]>();
 
-    return successResponse(media);
+    return NextResponse.json({
+      success: true,
+      data: media,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    });
   } catch (error) {
+    if (error instanceof ForbiddenError) {
+      return errorResponse(error.message, 403);
+    }
     console.error("Get uploads error:", error);
     return errorResponse("Internal server error", 500);
   }

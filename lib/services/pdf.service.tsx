@@ -316,7 +316,7 @@ const DevisPDF: React.FC<DevisPDFProps> = ({ devis }) => {
           <Text style={styles.footerText}>BM Wood - SARL au capital de 10 000 TND</Text>
           <Text style={styles.footerText}>Matricule Fiscal: XXXXXXX/X/X/XXX</Text>
           <Text style={styles.footerContact}>
-            Riadh Andalous, Tunis | Tél: 98 134 335 / 70 870 210 | Email: contact@bmwood.tn
+            Avenue Ibn Khaldoun, Ariana | Tél: 98 134 335 / 70 870 210 | Email: contact@bmwood.tn
           </Text>
         </View>
       </Page>

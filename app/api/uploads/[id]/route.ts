@@ -2,18 +2,32 @@ import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 import connectDB from "@/lib/db/connection";
 import { Media } from "@/lib/db/models";
-import { authenticateRequest, errorResponse, successResponse } from "@/lib/auth/middleware";
+import { authenticateRequest, requireRole, errorResponse, successResponse } from "@/lib/auth/middleware";
 import { deleteFile } from "@/lib/services/upload.service";
-import { ApiResponse, UnauthorizedError, NotFoundError, RouteContext } from "@/types/api.types";
-import { IMedia } from "@/types/models.types";
+import { ApiResponse, UnauthorizedError, ForbiddenError, NotFoundError, RouteContext } from "@/types/api.types";
+import { IMedia, UserRole } from "@/types/models.types";
 
-// GET /api/uploads/:id - Get file info (public)
+/** Public media metadata (no path, no uploader) */
+type MediaPublicMeta = Pick<IMedia, "_id" | "url" | "filename" | "originalName" | "mimeType" | "size" | "type" | "createdAt" | "updatedAt">;
+
+// GET /api/uploads/:id - Get file info (protected; full details only for admin/manager)
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   context: RouteContext
-): Promise<NextResponse<ApiResponse<IMedia>>> {
+): Promise<NextResponse<ApiResponse<IMedia | MediaPublicMeta>>> {
   try {
     await connectDB();
+
+    // Authenticate
+    let authUser;
+    try {
+      authUser = authenticateRequest(request);
+    } catch (error) {
+      if (error instanceof UnauthorizedError) {
+        return errorResponse(error.message, 401);
+      }
+      throw error;
+    }
 
     const { id } = await context.params;
 
@@ -24,16 +38,36 @@ export async function GET(
 
     const media = await Media.findById(id)
       .populate("uploadedBy", "firstName lastName email")
-      .lean<IMedia>();
+      .lean<IMedia & { uploadedBy?: unknown }>();
 
     if (!media) {
       throw new NotFoundError("Media not found");
     }
 
-    return successResponse(media);
+    const isAuthorized = [UserRole.ADMIN, UserRole.MANAGER].includes(authUser.role);
+    if (isAuthorized) {
+      return successResponse(media as IMedia);
+    }
+
+    // Return only public URL and basic metadata (omit path and uploader)
+    const publicMeta: MediaPublicMeta = {
+      _id: media._id,
+      url: media.url,
+      filename: media.filename,
+      originalName: media.originalName,
+      mimeType: media.mimeType,
+      size: media.size,
+      type: media.type,
+      createdAt: media.createdAt,
+      updatedAt: media.updatedAt,
+    };
+    return successResponse(publicMeta);
   } catch (error) {
     if (error instanceof NotFoundError) {
       return errorResponse(error.message, 404);
+    }
+    if (error instanceof ForbiddenError) {
+      return errorResponse(error.message, 403);
     }
 
     console.error("Get media error:", error);
@@ -51,10 +85,14 @@ export async function DELETE(
 
     // Authenticate
     try {
-      authenticateRequest(request);
+      const authUser = authenticateRequest(request);
+      requireRole(authUser, [UserRole.ADMIN, UserRole.MANAGER]);
     } catch (error) {
       if (error instanceof UnauthorizedError) {
         return errorResponse(error.message, 401);
+      }
+      if (error instanceof ForbiddenError) {
+        return errorResponse(error.message, 403);
       }
       throw error;
     }
@@ -82,6 +120,9 @@ export async function DELETE(
   } catch (error) {
     if (error instanceof NotFoundError) {
       return errorResponse(error.message, 404);
+    }
+    if (error instanceof ForbiddenError) {
+      return errorResponse(error.message, 403);
     }
 
     console.error("Delete media error:", error);

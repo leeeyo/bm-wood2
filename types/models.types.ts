@@ -39,6 +39,8 @@ export interface IUser extends BaseDocument {
   lastName: string;
   role: UserRole;
   refreshToken?: string;
+  resetPasswordToken?: string;
+  resetPasswordExpires?: Date;
   isActive: boolean;
 }
 
@@ -202,3 +204,16 @@ export type CreateMediaInput = {
   type: MediaType;
   uploadedBy?: string;
 };
+
+// ============ Blog Post Types ============
+
+export interface IBlogPost extends BaseDocument {
+  title: string;
+  slug: string;
+  excerpt?: string;
+  content: string;
+  coverImage?: string;
+  isPublished: boolean;
+  publishedAt?: Date | null;
+  authorId?: Types.ObjectId | null;
+}

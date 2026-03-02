@@ -55,3 +55,23 @@ export interface AuthenticatedUser {
   email: string;
   role: UserRole;
 }
+
+export interface RegisterInput {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+}
+
+export interface AuthContextType {
+  user: IUserPublic | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  isInitializing: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  register: (data: RegisterInput) => Promise<void>;
+  logout: () => Promise<void>;
+  forgotPassword: (email: string) => Promise<boolean>;
+  resetPassword: (token: string, password: string) => Promise<boolean>;
+  refreshUserData: () => Promise<void>;
+}

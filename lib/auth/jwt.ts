@@ -2,8 +2,18 @@ import jwt, { JwtPayload, SignOptions } from "jsonwebtoken";
 import { JWTAccessPayload, JWTRefreshPayload } from "@/types/auth.types";
 import { UserRole } from "@/types/models.types";
 
-const ACCESS_TOKEN_SECRET = process.env.JWT_ACCESS_SECRET || "access-secret-change-me";
-const REFRESH_TOKEN_SECRET = process.env.JWT_REFRESH_SECRET || "refresh-secret-change-me";
+function getRequiredSecret(name: string): string {
+  const value = process.env[name];
+  if (!value || value.trim() === "") {
+    throw new Error(
+      `JWT initialization failed: ${name} is required. Set it in your environment.`
+    );
+  }
+  return value;
+}
+
+const ACCESS_TOKEN_SECRET = getRequiredSecret("JWT_ACCESS_SECRET");
+const REFRESH_TOKEN_SECRET = getRequiredSecret("JWT_REFRESH_SECRET");
 
 const ACCESS_TOKEN_EXPIRY = "15m";
 const REFRESH_TOKEN_EXPIRY = "7d";

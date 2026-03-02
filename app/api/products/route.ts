@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 import connectDB from "@/lib/db/connection";
 import { Product, Category } from "@/lib/db/models";
-import { authenticateRequest, errorResponse, successResponse } from "@/lib/auth/middleware";
+import { authenticateRequest, requireRole, errorResponse, successResponse } from "@/lib/auth/middleware";
 import { createProductSchema, productQuerySchema } from "@/lib/validations/product.schema";
-import { ApiResponse, PaginatedResponse, UnauthorizedError, ConflictError, NotFoundError } from "@/types/api.types";
-import { IProduct } from "@/types/models.types";
+import { ApiResponse, PaginatedResponse, UnauthorizedError, ForbiddenError, ConflictError, NotFoundError } from "@/types/api.types";
+import { IProduct, UserRole } from "@/types/models.types";
 
 // GET /api/products - List products with filtering and pagination (public)
 export async function GET(request: NextRequest): Promise<NextResponse<PaginatedResponse<IProduct>>> {
@@ -104,9 +104,13 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
     let authUser;
     try {
       authUser = authenticateRequest(request);
+      requireRole(authUser, [UserRole.ADMIN, UserRole.MANAGER]);
     } catch (error) {
       if (error instanceof UnauthorizedError) {
         return errorResponse(error.message, 401);
+      }
+      if (error instanceof ForbiddenError) {
+        return errorResponse(error.message, 403);
       }
       throw error;
     }

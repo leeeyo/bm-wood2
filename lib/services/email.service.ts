@@ -78,7 +78,7 @@ export async function sendDevisConfirmationEmail(devis: IDevis): Promise<EmailRe
             </div>
             <div class="footer">
               <p>BM Wood - Menuiserie sur mesure</p>
-              <p>Riadh Andalous, Tunis</p>
+              <p>Avenue Ibn Khaldoun, Ariana</p>
               <p>Tél: 98 134 335 / 70 870 210</p>
             </div>
           </div>
@@ -283,7 +283,7 @@ export async function sendDevisStatusUpdateEmail(
             </div>
             <div class="footer">
               <p>BM Wood - Menuiserie sur mesure</p>
-              <p>Riadh Andalous, Tunis</p>
+              <p>Avenue Ibn Khaldoun, Ariana</p>
               <p>Tél: 98 134 335 / 70 870 210</p>
               <p>Email: contact@bmwood.tn</p>
             </div>
@@ -296,6 +296,78 @@ export async function sendDevisStatusUpdateEmail(
     return { success: true };
   } catch (error) {
     console.error("Failed to send status update email:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}
+
+/**
+ * Send password reset email with reset link
+ */
+export async function sendPasswordResetEmail(
+  email: string,
+  resetToken: string,
+  firstName: string
+): Promise<EmailResult> {
+  try {
+    const resend = getResend();
+    if (!resend) {
+      return { success: false, error: "Email service not configured (RESEND_API_KEY missing)" };
+    }
+
+    const resetUrl = `${APP_URL}/reset-password?token=${resetToken}`;
+
+    await resend.emails.send({
+      from: EMAIL_FROM,
+      to: email,
+      subject: "Réinitialisation de votre mot de passe - BM Wood",
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: #8B4513; color: white; padding: 20px; text-align: center; }
+            .content { padding: 20px; background: #f9f9f9; }
+            .footer { padding: 20px; text-align: center; font-size: 12px; color: #666; }
+            .btn { display: inline-block; padding: 12px 24px; background: #8B4513; color: white !important; text-decoration: none; border-radius: 5px; margin: 16px 0; }
+            .muted { font-size: 12px; color: #666; word-break: break-all; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>BM Wood</h1>
+              <p>Réinitialisation du mot de passe</p>
+            </div>
+            <div class="content">
+              <h2>Bonjour ${firstName},</h2>
+              <p>Vous avez demandé la réinitialisation de votre mot de passe.</p>
+              <p>Cliquez sur le bouton ci-dessous pour définir un nouveau mot de passe :</p>
+              <p style="text-align: center;">
+                <a href="${resetUrl}" class="btn">Réinitialiser mon mot de passe</a>
+              </p>
+              <p class="muted">Ce lien expire dans 1 heure. Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.</p>
+              <p class="muted">Lien direct : ${resetUrl}</p>
+            </div>
+            <div class="footer">
+              <p>BM Wood - Menuiserie sur mesure</p>
+              <p>Avenue Ibn Khaldoun, Ariana</p>
+              <p>Tél: 98 134 335 / 70 870 210</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to send password reset email:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",
@@ -347,7 +419,7 @@ export async function sendDevisPdfEmail(
             </div>
             <div class="footer">
               <p>BM Wood - Menuiserie sur mesure</p>
-              <p>Riadh Andalous, Tunis</p>
+              <p>Avenue Ibn Khaldoun, Ariana</p>
               <p>Tél: 98 134 335 / 70 870 210</p>
             </div>
           </div>
@@ -365,6 +437,79 @@ export async function sendDevisPdfEmail(
     return { success: true };
   } catch (error) {
     console.error("Failed to send PDF email:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}
+
+export interface ContactFormData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  subject?: string;
+  message: string;
+}
+
+/**
+ * Send contact form submission to admin
+ */
+export async function sendContactFormEmail(data: ContactFormData): Promise<EmailResult> {
+  try {
+    const resend = getResend();
+    if (!resend) {
+      return { success: false, error: "Email service not configured (RESEND_API_KEY missing)" };
+    }
+
+    await resend.emails.send({
+      from: EMAIL_FROM,
+      to: ADMIN_EMAIL,
+      replyTo: data.email,
+      subject: data.subject
+        ? `[Contact] ${data.subject} - ${data.firstName} ${data.lastName}`
+        : `[Contact] Message de ${data.firstName} ${data.lastName}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: #8B4513; color: white; padding: 20px; text-align: center; }
+            .content { padding: 20px; background: #f9f9f9; }
+            .section { background: white; padding: 15px; margin: 15px 0; border-radius: 5px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>Nouveau message de contact</h1>
+            </div>
+            <div class="content">
+              <div class="section">
+                <h3>Informations:</h3>
+                <p><strong>Nom:</strong> ${data.firstName} ${data.lastName}</p>
+                <p><strong>Email:</strong> ${data.email}</p>
+                <p><strong>Téléphone:</strong> ${data.phone}</p>
+                ${data.subject ? `<p><strong>Sujet:</strong> ${data.subject}</p>` : ""}
+              </div>
+              <div class="section">
+                <h3>Message:</h3>
+                <p>${data.message.replace(/\n/g, "<br>")}</p>
+              </div>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to send contact form email:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",
