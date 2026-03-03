@@ -104,7 +104,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
     let authUser;
     try {
       authUser = authenticateRequest(request);
-      requireRole(authUser, [UserRole.ADMIN, UserRole.MANAGER]);
+      requireRole(authUser, [UserRole.ADMIN]);
     } catch (error) {
       if (error instanceof UnauthorizedError) {
         return errorResponse(error.message, 401);

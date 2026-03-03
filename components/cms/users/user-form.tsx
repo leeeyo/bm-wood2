@@ -79,8 +79,7 @@ type UpdateFormData = z.infer<typeof updateFormSchema>;
 // Role options
 const roleOptions = [
   { value: UserRole.ADMIN, label: "Administrateur" },
-  { value: UserRole.MANAGER, label: "Manager" },
-  { value: UserRole.STAFF, label: "Staff" },
+  { value: UserRole.USER, label: "Utilisateur" },
 ];
 
 export function UserForm({ user }: UserFormProps) {
@@ -98,7 +97,7 @@ export function UserForm({ user }: UserFormProps) {
       email: user?.email ?? "",
       firstName: user?.firstName ?? "",
       lastName: user?.lastName ?? "",
-      role: user?.role ?? UserRole.STAFF,
+      role: user?.role ?? UserRole.USER,
       isActive: user?.isActive ?? true,
       password: "",
     },

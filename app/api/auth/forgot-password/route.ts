@@ -4,6 +4,7 @@ import connectDB from "@/lib/db/connection";
 import { User } from "@/lib/db/models";
 import { forgotPasswordSchema } from "@/lib/validations/auth.schema";
 import { sendPasswordResetEmail } from "@/lib/services/email.service";
+import { checkAuthRateLimit, AUTH_FAILURE_MESSAGE } from "@/lib/rate-limit";
 import { ApiResponse } from "@/types/api.types";
 
 const RESET_TOKEN_EXPIRY_HOURS = 1;
@@ -16,9 +17,21 @@ export async function POST(
   request: NextRequest
 ): Promise<NextResponse<ApiResponse<Record<string, never>>>> {
   try {
-    await connectDB();
+    const body = await request.json().catch(() => ({}));
+    const identifier = typeof body?.email === "string" ? body.email : undefined;
 
-    const body = await request.json();
+    const limit = checkAuthRateLimit(request, identifier);
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { success: false, error: AUTH_FAILURE_MESSAGE },
+        {
+          status: 429,
+          headers: limit.retryAfter ? { "Retry-After": String(limit.retryAfter) } : undefined,
+        }
+      );
+    }
+
+    await connectDB();
 
     const validationResult = forgotPasswordSchema.safeParse(body);
     if (!validationResult.success) {

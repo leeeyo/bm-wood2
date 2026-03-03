@@ -1,5 +1,5 @@
 import Link from "next/link"
-import Image from "next/image"
+import { SafeImage } from "@/components/ui/safe-image"
 import { ArrowUpRight } from "lucide-react"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
@@ -69,7 +69,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
                     <article className="cursor-pointer h-full flex flex-col">
                       <div className="relative overflow-hidden aspect-4/3 mb-4 bg-muted rounded-lg">
                         {blog.coverImage ? (
-                          <Image
+                          <SafeImage
                             src={blog.coverImage}
                             alt={blog.title}
                             fill

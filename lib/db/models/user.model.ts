@@ -32,11 +32,21 @@ const userSchema = new Schema<IUser>(
     role: {
       type: String,
       enum: Object.values(UserRole),
-      default: UserRole.STAFF,
+      default: UserRole.USER,
+    },
+    phone: {
+      type: String,
+      trim: true,
+      maxlength: [20, "Phone cannot exceed 20 characters"],
+    },
+    marketingEmails: {
+      type: Boolean,
+      default: true,
     },
     refreshToken: {
       type: String,
       select: false,
+      // Stores SHA-256 hash of refresh token, never raw token
     },
     resetPasswordToken: {
       type: String,

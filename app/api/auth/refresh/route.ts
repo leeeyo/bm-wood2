@@ -1,22 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/db/connection";
 import { User } from "@/lib/db/models";
-import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "@/lib/auth/jwt";
+import { generateAccessToken, generateRefreshToken, hashRefreshToken, verifyRefreshToken } from "@/lib/auth/jwt";
+import { checkAuthRateLimit, AUTH_FAILURE_MESSAGE } from "@/lib/rate-limit";
 import { ApiResponse, UnauthorizedError } from "@/types/api.types";
-import { RefreshResponse, AuthTokens } from "@/types/auth.types";
+import { RefreshResponse } from "@/types/auth.types";
 
-export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse<RefreshResponse | AuthTokens>>> {
+export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse<RefreshResponse>>> {
   try {
-    await connectDB();
-
-    // Get refresh token from cookie or body
-    let refreshToken = request.cookies.get("refreshToken")?.value;
-    
-    if (!refreshToken) {
-      const body = await request.json().catch(() => ({}));
-      refreshToken = body.refreshToken;
+    const limit = checkAuthRateLimit(request);
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { success: false, error: AUTH_FAILURE_MESSAGE },
+        {
+          status: 429,
+          headers: limit.retryAfter ? { "Retry-After": String(limit.retryAfter) } : undefined,
+        }
+      );
     }
 
+    await connectDB();
+
+    // Get refresh token from httpOnly cookie only (no body acceptance)
+    const refreshToken = request.cookies.get("refreshToken")?.value;
     if (!refreshToken) {
       throw new UnauthorizedError("Refresh token is required");
     }
@@ -27,9 +33,15 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       throw new UnauthorizedError("Invalid or expired refresh token");
     }
 
-    // Find user and verify stored refresh token
+    // Find user and verify stored refresh token (hash or legacy raw)
     const user = await User.findById(payload.userId).select("+refreshToken");
-    if (!user || user.refreshToken !== refreshToken) {
+    const stored = user?.refreshToken;
+    const incomingHash = hashRefreshToken(refreshToken);
+    const isValid =
+      user &&
+      stored &&
+      (stored === incomingHash || stored === refreshToken); // support legacy raw token migration
+    if (!isValid) {
       throw new UnauthorizedError("Invalid refresh token");
     }
 
@@ -46,15 +58,16 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
     );
     const newRefreshToken = generateRefreshToken(user._id.toString());
 
-    // Update refresh token in database
-    await User.findByIdAndUpdate(user._id, { refreshToken: newRefreshToken });
+    // Update to hashed refresh token in database (migrates legacy raw tokens)
+    const newRefreshTokenHash = hashRefreshToken(newRefreshToken);
+    await User.findByIdAndUpdate(user._id, { refreshToken: newRefreshTokenHash });
 
-    const response = NextResponse.json<ApiResponse<AuthTokens>>(
+    // Return accessToken only; refresh token is httpOnly cookie only
+    const response = NextResponse.json<ApiResponse<RefreshResponse>>(
       {
         success: true,
         data: {
           accessToken: newAccessToken,
-          refreshToken: newRefreshToken,
         },
         message: "Token refreshed successfully",
       },

@@ -1,6 +1,6 @@
 "use client"
 
-import Image from "next/image"
+import { SafeImage } from "@/components/ui/safe-image"
 import Link from "next/link"
 import { ArrowUpRight, Loader2 } from "lucide-react"
 import { IProduct } from "@/types/models.types"
@@ -80,7 +80,7 @@ function ProductCard({ product, viewMode }: ProductCardProps) {
           className="relative w-32 h-32 shrink-0 bg-muted rounded overflow-hidden block"
         >
           {productImage ? (
-            <Image
+            <SafeImage
               src={productImage}
               alt={product.name}
               fill
@@ -130,7 +130,7 @@ function ProductCard({ product, viewMode }: ProductCardProps) {
       <Link href={productUrl} className="block">
         <div className="relative overflow-hidden aspect-4/3 mb-4 bg-muted rounded-lg">
           {productImage ? (
-            <Image
+            <SafeImage
               src={productImage}
               alt={product.name}
               fill

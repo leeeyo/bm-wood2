@@ -2,20 +2,42 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/db/connection";
 import { Category } from "@/lib/db/models";
 import { authenticateRequest, requireRole, errorResponse, successResponse } from "@/lib/auth/middleware";
-import { createCategorySchema } from "@/lib/validations/category.schema";
-import { ApiResponse, UnauthorizedError, ForbiddenError, ConflictError } from "@/types/api.types";
+import { createCategorySchema, categoryQuerySchema } from "@/lib/validations/category.schema";
+import { ApiResponse, PaginatedResponse, UnauthorizedError, ForbiddenError, ConflictError } from "@/types/api.types";
 import { ICategory, UserRole } from "@/types/models.types";
 
-// GET /api/categories - List all categories (public)
-export async function GET(): Promise<NextResponse<ApiResponse<ICategory[]>>> {
+// GET /api/categories - List all categories with optional pagination (public)
+export async function GET(request: NextRequest): Promise<NextResponse<ApiResponse<ICategory[]> | PaginatedResponse<ICategory>>> {
   try {
     await connectDB();
 
+    const { searchParams } = new URL(request.url);
+    const queryParams = Object.fromEntries(searchParams.entries());
+    const validationResult = categoryQuerySchema.safeParse(queryParams);
+    const { page, limit } = validationResult.success ? validationResult.data : { page: 1, limit: 100 };
+
+    const skip = (page - 1) * limit;
+    const total = await Category.countDocuments();
+    const totalPages = Math.ceil(total / limit);
+
     const categories = await Category.find()
       .sort({ order: 1, createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
       .lean<ICategory[]>();
 
-    return successResponse(categories);
+    return NextResponse.json<PaginatedResponse<ICategory>>({
+      success: true,
+      data: categories,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    });
   } catch (error) {
     console.error("Get categories error:", error);
     return errorResponse("Internal server error", 500);
@@ -30,7 +52,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
     // Authenticate
     try {
       const authUser = authenticateRequest(request);
-      requireRole(authUser, [UserRole.ADMIN, UserRole.MANAGER]);
+      requireRole(authUser, [UserRole.ADMIN]);
     } catch (error) {
       if (error instanceof UnauthorizedError) {
         return errorResponse(error.message, 401);

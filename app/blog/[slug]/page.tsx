@@ -1,5 +1,5 @@
 import Link from "next/link"
-import Image from "next/image"
+import { SafeImage } from "@/components/ui/safe-image"
 import { ArrowLeft } from "lucide-react"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
@@ -70,7 +70,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
           <div className="container mx-auto px-6 md:px-12 -mt-8">
             <div className="max-w-4xl mx-auto">
               <div className="relative aspect-video rounded-lg overflow-hidden bg-muted">
-                <Image
+                <SafeImage
                   src={blog.coverImage}
                   alt={blog.title}
                   fill

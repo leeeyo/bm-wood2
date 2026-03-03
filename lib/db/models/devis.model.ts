@@ -103,6 +103,10 @@ const devisSchema = new Schema<IDevis>(
       trim: true,
       maxlength: [2000, "Admin notes cannot exceed 2000 characters"],
     },
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
     assignedTo: {
       type: Schema.Types.ObjectId,
       ref: "User",
@@ -133,6 +137,7 @@ const devisSchema = new Schema<IDevis>(
 // Create indexes (reference already has unique: true, so no duplicate index)
 devisSchema.index({ status: 1 });
 devisSchema.index({ "client.email": 1 });
+devisSchema.index({ userId: 1 });
 devisSchema.index({ assignedTo: 1 });
 devisSchema.index({ createdAt: -1 });
 

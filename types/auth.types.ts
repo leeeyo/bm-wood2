@@ -36,12 +36,12 @@ export interface RefreshTokenRequest {
 
 export interface AuthTokens {
   accessToken: string;
-  refreshToken: string;
+  refreshToken?: string; // Deprecated: refresh token is httpOnly cookie only, never in JSON
 }
 
 export interface LoginResponse {
   user: IUserPublic;
-  tokens: AuthTokens;
+  tokens: { accessToken: string };
 }
 
 export interface RefreshResponse {

@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import connectDB from "@/lib/db/connection";
 import { BlogPost } from "@/lib/db/models";
 import { authenticateRequest, requireRole, errorResponse, successResponse } from "@/lib/auth/middleware";
+import { CMS_ROLES } from "@/lib/auth/middleware";
 import { updateBlogPostSchema } from "@/lib/validations/blog.schema";
 import {
   ApiResponse,
@@ -36,11 +37,15 @@ export async function GET(
       throw new NotFoundError("Blog post not found");
     }
 
-    // If not published, require auth
+    // Unpublished posts visible only to CMS roles
     if (!blog.isPublished) {
       try {
-        authenticateRequest(request);
-      } catch {
+        const authUser = authenticateRequest(request);
+        if (!(CMS_ROLES as readonly UserRole[]).includes(authUser.role)) {
+          throw new NotFoundError("Blog post not found");
+        }
+      } catch (error) {
+        if (error instanceof NotFoundError) throw error;
         throw new NotFoundError("Blog post not found");
       }
     }
@@ -66,7 +71,7 @@ export async function PUT(
 
     try {
       const authUser = authenticateRequest(request);
-      requireRole(authUser, [UserRole.ADMIN, UserRole.MANAGER]);
+      requireRole(authUser, [UserRole.ADMIN]);
     } catch (error) {
       if (error instanceof UnauthorizedError) {
         return errorResponse(error.message, 401);
@@ -150,7 +155,7 @@ export async function DELETE(
 
     try {
       const authUser = authenticateRequest(request);
-      requireRole(authUser, [UserRole.ADMIN, UserRole.MANAGER]);
+      requireRole(authUser, [UserRole.ADMIN]);
     } catch (error) {
       if (error instanceof UnauthorizedError) {
         return errorResponse(error.message, 401);

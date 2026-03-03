@@ -18,7 +18,7 @@ export async function GET(
     // Authenticate
     try {
       const authUser = authenticateRequest(request);
-      requireRole(authUser, [UserRole.ADMIN, UserRole.MANAGER]);
+      requireRole(authUser, [UserRole.ADMIN]);
     } catch (error) {
       if (error instanceof UnauthorizedError) {
         return errorResponse(error.message, 401);
@@ -69,7 +69,7 @@ export async function PUT(
     // Authenticate
     try {
       const authUser = authenticateRequest(request);
-      requireRole(authUser, [UserRole.ADMIN, UserRole.MANAGER]);
+      requireRole(authUser, [UserRole.ADMIN]);
     } catch (error) {
       if (error instanceof UnauthorizedError) {
         return errorResponse(error.message, 401);
@@ -173,7 +173,7 @@ export async function DELETE(
     // Authenticate
     try {
       const authUser = authenticateRequest(request);
-      requireRole(authUser, [UserRole.ADMIN, UserRole.MANAGER]);
+      requireRole(authUser, [UserRole.ADMIN]);
     } catch (error) {
       if (error instanceof UnauthorizedError) {
         return errorResponse(error.message, 401);

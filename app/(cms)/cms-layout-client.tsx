@@ -4,6 +4,7 @@ import { ProtectedRoute } from "@/components/auth/protected-route"
 import { CMSSidebar } from "@/components/cms/cms-sidebar"
 import { CMSHeader } from "@/components/cms/cms-header"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
+import { UserRole } from "@/types/models.types"
 
 export function CMSLayoutClient({
   children,
@@ -11,7 +12,7 @@ export function CMSLayoutClient({
   children: React.ReactNode
 }) {
   return (
-    <ProtectedRoute>
+    <ProtectedRoute allowedRoles={[UserRole.ADMIN]} redirectTo="/mon-compte">
       <SidebarProvider>
         <CMSSidebar />
         <SidebarInset>

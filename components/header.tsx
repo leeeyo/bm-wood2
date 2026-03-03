@@ -9,14 +9,6 @@ import { cn } from "@/lib/utils"
 import Image from "next/image"
 import { useAuth } from "@/lib/contexts/auth-context"
 import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu"
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -24,29 +16,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { ChevronDown, LogOut, LayoutDashboard, User } from "lucide-react"
+import { UserRole } from "@/types/models.types"
 
-// Showroom megamenu: Cuisines, Dressings, Portes, Habillage mural
+// Showroom megamenu – static list (always visible, no fetch race)
 const showroomItems = [
-  {
-    label: "Cuisines",
-    href: "/catalogue/cuisine",
-    description: "Modèles, matériaux, accessoires",
-  },
-  {
-    label: "Dressings",
-    href: "/catalogue/dressing",
-    description: "Optimisation d'espace, finitions",
-  },
-  {
-    label: "Portes",
-    href: "/catalogue/porte",
-    description: "Portes intérieures et extérieures",
-  },
-  {
-    label: "Habillage mural",
-    href: "/catalogue/habillage-mural",
-    description: "Revêtements muraux en bois",
-  },
+  { label: "Cuisines", href: "/catalogue/cuisine", description: "Modèles, matériaux, accessoires" },
+  { label: "Dressings", href: "/catalogue/dressing", description: "Optimisation d'espace, finitions" },
+  { label: "Portes", href: "/catalogue/porte", description: "Portes intérieures et extérieures" },
+  { label: "Habillage mural", href: "/catalogue/habillage-mural", description: "Revêtements muraux en bois" },
 ]
 
 const navItems = [
@@ -89,7 +66,7 @@ export function Header() {
       className={cn(
         "fixed z-50 transition-all duration-500 my-0 py-0 rounded-none",
         scrolled || mobileMenuOpen
-          ? "bg-primary backdrop-blur-md py-4 top-4 left-4 right-4 rounded-2xl"
+          ? "bg-primary backdrop-blur-md py-2 top-2 left-2 right-2 rounded-xl"
           : "bg-transparent py-4 top-0 left-0 right-0",
       )}
     >
@@ -104,11 +81,11 @@ export function Header() {
             <Image
               src="/bmwood-header.png"
               alt="BM Wood"
-              width={scrolled ? 100 : 240}
-              height={scrolled ? 50 : 110}
+              width={scrolled ? 80 : 240}
+              height={scrolled ? 32 : 110}
               className={cn(
                 "w-auto transition-all duration-500",
-                scrolled ? "h-10" : "h-24 md:h-28 lg:h-36",
+                scrolled ? "h-7" : "h-24 md:h-28 lg:h-36",
               )}
             />
           </Link>
@@ -118,48 +95,45 @@ export function Header() {
         <div className="flex-1" />
 
         {/* Center - Navigation with Megamenu */}
-        <div className="hidden md:flex items-center gap-12 lg:gap-16 text-sm tracking-wide font-bold" style={{ fontFamily: "var(--font-heading)" }}>
+        <div className={cn("hidden md:flex items-center tracking-wide font-bold", scrolled ? "gap-8 lg:gap-10 text-xs" : "gap-12 lg:gap-16 text-sm")} style={{ fontFamily: "var(--font-heading)" }}>
           <Link href="/" className={linkClass}>
             Accueil
           </Link>
 
-          <NavigationMenu viewportClassName="bg-primary text-primary-foreground border-white/10">
-            <NavigationMenuList className="gap-0 border-0 bg-transparent p-0">
-              <NavigationMenuItem>
-                <NavigationMenuTrigger
-                  className={cn(
-                    "bg-transparent text-white hover:text-[rgb(251,146,60)] hover:bg-transparent data-[state=open]:bg-transparent data-[state=open]:text-[rgb(251,146,60)] focus:bg-transparent h-auto px-0 py-0 font-bold",
-                    linkClass,
-                  )}
-                >
-                  Showroom
-                </NavigationMenuTrigger>
-                <NavigationMenuContent className="bg-primary backdrop-blur-md border border-white/10 left-0 min-w-[320px] p-4 text-primary-foreground shadow-xl">
-                  <ul className="grid gap-2">
-                    {showroomItems.map((item) => (
-                      <li key={item.href}>
-                        <NavigationMenuLink asChild>
-                          <Link
-                            href={item.href}
-                            className="flex flex-col w-full rounded-md px-4 py-3 text-primary-foreground hover:bg-white/10 transition-colors group"
-                          >
-                            <span className="font-semibold group-hover:text-[rgb(251,146,60)] transition-colors">
-                              {item.label}
-                            </span>
-                            {"description" in item && item.description && (
-                              <span className="text-xs text-primary-foreground/70 mt-0.5">
-                                {item.description}
-                              </span>
-                            )}
-                          </Link>
-                        </NavigationMenuLink>
-                      </li>
-                    ))}
-                  </ul>
-                </NavigationMenuContent>
-              </NavigationMenuItem>
-            </NavigationMenuList>
-          </NavigationMenu>
+          <div className="relative group/showroom">
+            <button
+              type="button"
+              className={cn("inline-flex items-center gap-1 font-bold", linkClass)}
+              aria-haspopup="true"
+              aria-expanded="false"
+            >
+              Showroom
+              <ChevronDown className="w-4 h-4 transition-transform group-hover/showroom:rotate-180" />
+            </button>
+            <div className="absolute left-0 top-full pt-1 opacity-0 pointer-events-none group-hover/showroom:opacity-100 group-hover/showroom:pointer-events-auto transition-opacity duration-150">
+              <div className="bg-primary border border-white/10 rounded-md shadow-xl min-w-[280px] p-3">
+                <ul className="grid gap-1">
+                  {showroomItems.map((item) => (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        className="flex flex-col w-full rounded-md px-4 py-3 text-white hover:bg-white/10 transition-colors"
+                      >
+                        <span className="font-semibold hover:text-[rgb(251,146,60)] transition-colors">
+                          {item.label}
+                        </span>
+                        {item.description && (
+                          <span className="text-xs text-white/70 mt-0.5">
+                            {item.description}
+                          </span>
+                        )}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
 
           {navItems.slice(1).map((item) => (
             <Link key={item.label} href={item.href} className={linkClass}>
@@ -176,13 +150,14 @@ export function Header() {
         <div className="flex-1" />
 
         {/* Right side - Login/Dashboard + CTA */}
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-2 lg:gap-3">
           {isAuthenticated && user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
                   className={cn(
-                    "inline-flex items-center gap-2 text-sm px-4 py-2 rounded-md transition-all duration-300 text-white hover:bg-white/10",
+                    "inline-flex items-center gap-2 rounded-md transition-all duration-300 text-white hover:bg-white/10",
+                    scrolled ? "text-xs px-3 py-1.5" : "text-sm px-4 py-2",
                   )}
                   style={{ fontFamily: "var(--font-heading)" }}
                 >
@@ -195,11 +170,19 @@ export function Header() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuItem asChild>
-                  <Link href="/dashboard" className="flex items-center gap-2 cursor-pointer">
-                    <LayoutDashboard className="w-4 h-4" />
-                    Dashboard
+                  <Link href="/mon-compte" className="flex items-center gap-2 cursor-pointer">
+                    <User className="w-4 h-4" />
+                    Mon compte
                   </Link>
                 </DropdownMenuItem>
+                {user.role === UserRole.ADMIN && (
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard" className="flex items-center gap-2 cursor-pointer">
+                      <LayoutDashboard className="w-4 h-4" />
+                      Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => logout()}
@@ -214,7 +197,8 @@ export function Header() {
             <Link
               href="/login"
               className={cn(
-                "inline-flex items-center gap-2 text-sm px-4 py-2 transition-all duration-300 text-white hover:text-[rgb(251,146,60)]",
+                "inline-flex items-center gap-2 transition-all duration-300 text-white hover:text-[rgb(251,146,60)]",
+                scrolled ? "text-xs px-3 py-1.5" : "text-sm px-4 py-2",
               )}
               style={{ fontFamily: "var(--font-heading)" }}
             >
@@ -225,8 +209,9 @@ export function Header() {
           <Link
             href="/demander-un-devis"
             className={cn(
-              "inline-flex items-center gap-2 text-sm px-6 py-3 transition-all duration-300",
+              "inline-flex items-center gap-2 transition-all duration-300",
               "bg-white text-foreground border border-foreground/20 hover:bg-foreground hover:text-white",
+              scrolled ? "text-xs px-4 py-2" : "text-sm px-6 py-3",
             )}
             style={{ fontFamily: "var(--font-heading)" }}
           >
@@ -309,11 +294,20 @@ export function Header() {
               </Link>
             </li>
             {isAuthenticated ? (
-              <li>
-                <Link href="/dashboard" className="hover:text-[rgb(251,146,60)] transition-colors duration-300 text-white text-4xl font-light block" onClick={closeMobileMenu}>
-                  Dashboard
-                </Link>
-              </li>
+              <>
+                <li>
+                  <Link href="/mon-compte" className="hover:text-[rgb(251,146,60)] transition-colors duration-300 text-white text-4xl font-light block" onClick={closeMobileMenu}>
+                    Mon compte
+                  </Link>
+                </li>
+                {user?.role === UserRole.ADMIN && (
+                  <li>
+                    <Link href="/dashboard" className="hover:text-[rgb(251,146,60)] transition-colors duration-300 text-white text-4xl font-light block" onClick={closeMobileMenu}>
+                      Dashboard
+                    </Link>
+                  </li>
+                )}
+              </>
             ) : (
               <li>
                 <Link href="/login" className="hover:text-[rgb(251,146,60)] transition-colors duration-300 text-white text-4xl font-light block" onClick={closeMobileMenu}>

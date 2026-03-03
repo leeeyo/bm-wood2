@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+import { SafeImage } from "@/components/ui/safe-image";
 import Link from "next/link";
 import { MoreHorizontal, Pencil, Trash2, Eye, Newspaper } from "lucide-react";
 import { toast } from "sonner";
@@ -140,7 +140,7 @@ export function BlogTable({ blogs, isLoading, onDelete }: BlogTableProps) {
                 <TableCell>
                   <div className="relative size-12 rounded-md overflow-hidden bg-muted">
                     {blog.coverImage ? (
-                      <Image
+                      <SafeImage
                         src={blog.coverImage}
                         alt={blog.title}
                         fill
@@ -240,7 +240,7 @@ function MobileBlogCard({ blog, onDeleteClick }: MobileBlogCardProps) {
         <div className="flex items-start gap-3">
           <div className="relative size-14 rounded-md overflow-hidden bg-muted shrink-0">
             {blog.coverImage ? (
-              <Image
+              <SafeImage
                 src={blog.coverImage}
                 alt={blog.title}
                 fill

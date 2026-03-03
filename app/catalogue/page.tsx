@@ -1,5 +1,5 @@
 import Link from "next/link"
-import Image from "next/image"
+import { SafeImage } from "@/components/ui/safe-image"
 import { ArrowLeft, ArrowUpRight } from "lucide-react"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
@@ -73,7 +73,7 @@ export default async function CataloguePage({ searchParams }: CataloguePageProps
       <header className="fixed top-0 left-0 right-0 z-50 bg-primary py-4">
         <nav className="container mx-auto px-6 flex items-center justify-between">
           <Link href="/" className="transition-all duration-300">
-            <Image
+            <SafeImage
               src="/bmwood-header.png"
               alt="BM Wood"
               width={100}
@@ -131,7 +131,7 @@ export default async function CataloguePage({ searchParams }: CataloguePageProps
                   <article className="cursor-pointer">
                     <div className="relative overflow-hidden aspect-4/3 mb-4 bg-muted">
                       {category.image ? (
-                        <Image
+                        <SafeImage
                           src={category.image}
                           alt={category.name}
                           fill

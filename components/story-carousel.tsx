@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState, useCallback } from "react"
-import Image from "next/image"
+import { SafeImage } from "@/components/ui/safe-image"
 import useEmblaCarousel from "embla-carousel-react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
@@ -108,7 +108,7 @@ export function StoryCarousel({
                 className="min-w-0 flex-[0_0_100%] pl-4"
               >
                 <div className="relative aspect-video w-full overflow-hidden">
-                  <Image
+                  <SafeImage
                     src={slide.image}
                     alt={slide.alt ?? slide.headline}
                     fill

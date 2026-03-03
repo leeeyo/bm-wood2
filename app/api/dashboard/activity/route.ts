@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/db/connection";
 import { Devis, Product, Category } from "@/lib/db/models";
-import { authenticateRequest, errorResponse, successResponse } from "@/lib/auth/middleware";
-import { ApiResponse, UnauthorizedError } from "@/types/api.types";
+import { authenticateAndRequireRole, errorResponse, successResponse } from "@/lib/auth/middleware";
+import { CMS_ROLES } from "@/lib/auth/middleware";
+import { ApiResponse, UnauthorizedError, ForbiddenError } from "@/types/api.types";
 
 // ============ Activity Types ============
 
@@ -23,12 +24,15 @@ const MAX_TOTAL_ITEMS = 20;
 
 export async function GET(request: NextRequest): Promise<NextResponse<ApiResponse<ActivityItem[]>>> {
   try {
-    // Authenticate - only CMS users can access dashboard activity
+    // Authenticate and require admin role for dashboard activity
     try {
-      authenticateRequest(request);
+      authenticateAndRequireRole(request, [...CMS_ROLES]);
     } catch (error) {
       if (error instanceof UnauthorizedError) {
         return errorResponse(error.message, 401);
+      }
+      if (error instanceof ForbiddenError) {
+        return errorResponse(error.message, 403);
       }
       throw error;
     }

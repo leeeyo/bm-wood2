@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/db/connection";
 import { BlogPost } from "@/lib/db/models";
 import { authenticateRequest, requireRole, errorResponse, successResponse } from "@/lib/auth/middleware";
+import { CMS_ROLES } from "@/lib/auth/middleware";
 import { createBlogPostSchema, blogQuerySchema } from "@/lib/validations/blog.schema";
 import {
   ApiResponse,
@@ -38,17 +39,17 @@ export async function GET(
 
     const filter: Record<string, unknown> = {};
 
-    // If not authenticated, only show published
-    let showAll = false;
+    // Only CMS roles can see unpublished content; public sees published only
+    let hasCmsRole = false;
     try {
-      authenticateRequest(request);
-      showAll = true;
+      const authUser = authenticateRequest(request);
+      hasCmsRole = (CMS_ROLES as readonly UserRole[]).includes(authUser.role);
     } catch {
       // Public request - filter to published only
-      filter.isPublished = true;
     }
-
-    if (showAll && typeof isPublished === "boolean") {
+    if (!hasCmsRole) {
+      filter.isPublished = true;
+    } else if (typeof isPublished === "boolean") {
       filter.isPublished = isPublished;
     }
 
@@ -101,7 +102,7 @@ export async function POST(
 
     try {
       const authUser = authenticateRequest(request);
-      requireRole(authUser, [UserRole.ADMIN, UserRole.MANAGER]);
+      requireRole(authUser, [UserRole.ADMIN]);
     } catch (error) {
       if (error instanceof UnauthorizedError) {
         return errorResponse(error.message, 401);

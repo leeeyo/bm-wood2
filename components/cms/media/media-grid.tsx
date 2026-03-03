@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+import { SafeImage } from "@/components/ui/safe-image";
 import {
   FileText,
   MoreHorizontal,
@@ -216,7 +216,7 @@ export function MediaGrid({
           </DialogHeader>
           <div className="flex items-center justify-center min-h-[300px] max-h-[60vh] bg-muted rounded-md overflow-hidden">
             {previewMedia && isImage(previewMedia) ? (
-              <Image
+              <SafeImage
                 src={previewMedia.url}
                 alt={previewMedia.originalName}
                 width={800}
@@ -325,7 +325,7 @@ function MediaGridItem({
     >
       {/* Thumbnail */}
       {isImage(item) ? (
-        <Image
+        <SafeImage
           src={item.url}
           alt={item.originalName}
           fill
@@ -463,7 +463,7 @@ function MediaListView({
             <TableCell>
               <div className="relative size-10 rounded-md overflow-hidden bg-muted">
                 {isImage(item) ? (
-                  <Image
+                  <SafeImage
                     src={item.url}
                     alt={item.originalName}
                     fill

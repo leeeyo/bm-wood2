@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/db/connection";
 import { Devis, DevisCounter } from "@/lib/db/models";
-import { authenticateRequest, errorResponse, successResponse } from "@/lib/auth/middleware";
+import { authenticateRequest, authenticateAndRequireRole, errorResponse, successResponse } from "@/lib/auth/middleware";
+import { CMS_ROLES } from "@/lib/auth/middleware";
 import { checkRateLimit, isLikelyBot, getDevisLimit } from "@/lib/rate-limit";
 import { createDevisSchema, devisQuerySchema } from "@/lib/validations/devis.schema";
-import { ApiResponse, PaginatedResponse, UnauthorizedError } from "@/types/api.types";
+import { ApiResponse, PaginatedResponse, UnauthorizedError, ForbiddenError } from "@/types/api.types";
 import { IDevis, DevisStatus } from "@/types/models.types";
 import { sendDevisConfirmationEmail, sendNewDevisNotificationEmail } from "@/lib/services/email.service";
 
@@ -13,9 +14,9 @@ export async function GET(request: NextRequest): Promise<NextResponse<PaginatedR
   try {
     await connectDB();
 
-    // Authenticate
+    // Authenticate and require admin role for listing all devis
     try {
-      authenticateRequest(request);
+      authenticateAndRequireRole(request, [...CMS_ROLES]);
     } catch (error) {
       if (error instanceof UnauthorizedError) {
         return NextResponse.json(
@@ -25,6 +26,16 @@ export async function GET(request: NextRequest): Promise<NextResponse<PaginatedR
             pagination: { page: 1, limit: 20, total: 0, totalPages: 0, hasNext: false, hasPrev: false },
           },
           { status: 401 }
+        );
+      }
+      if (error instanceof ForbiddenError) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: error.message,
+            pagination: { page: 1, limit: 20, total: 0, totalPages: 0, hasNext: false, hasPrev: false },
+          },
+          { status: 403 }
         );
       }
       throw error;
@@ -176,11 +187,21 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
 
     const reference = `DEV-${yearMonth}-${String(counter.seq).padStart(4, "0")}`;
 
+    // If user is authenticated, link devis to their account
+    let userId: string | undefined;
+    try {
+      const authUser = authenticateRequest(request);
+      userId = authUser.userId;
+    } catch {
+      // Not authenticated - devis stays unlinked
+    }
+
     // Create devis with generated reference
     const devis = await Devis.create({
       ...data,
       reference,
       status: DevisStatus.PENDING,
+      ...(userId && { userId }),
     });
 
     // Send confirmation email to customer (non-blocking)

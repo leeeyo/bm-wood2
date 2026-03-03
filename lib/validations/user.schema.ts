@@ -20,7 +20,7 @@ export const createUserSchema = z.object({
     .string()
     .min(1, "Last name is required")
     .max(50, "Last name cannot exceed 50 characters"),
-  role: z.nativeEnum(UserRole).optional().default(UserRole.STAFF),
+  role: z.nativeEnum(UserRole).optional().default(UserRole.USER),
 });
 
 export const updateUserSchema = z.object({
@@ -34,8 +34,18 @@ export const updateUserSchema = z.object({
     .optional(),
   firstName: z.string().max(50).optional(),
   lastName: z.string().max(50).optional(),
+  phone: z.string().max(20).optional().nullable(),
+  marketingEmails: z.boolean().optional(),
   role: z.nativeEnum(UserRole).optional(),
   isActive: z.boolean().optional(),
+});
+
+/** Schema for users updating their own profile (no role, isActive, or password) */
+export const updateProfileSchema = z.object({
+  firstName: z.string().min(1, "Le prénom est requis").max(50).optional(),
+  lastName: z.string().min(1, "Le nom est requis").max(50).optional(),
+  phone: z.string().max(20).optional().nullable(),
+  marketingEmails: z.boolean().optional(),
 });
 
 export const userQuerySchema = z.object({
@@ -50,4 +60,5 @@ export const userQuerySchema = z.object({
 
 export type CreateUserInput = z.infer<typeof createUserSchema>;
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 export type UserQueryInput = z.infer<typeof userQuerySchema>;

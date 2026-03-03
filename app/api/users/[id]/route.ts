@@ -16,6 +16,8 @@ function toUserPublic(user: IUser): IUserPublic {
     firstName: user.firstName,
     lastName: user.lastName,
     role: user.role,
+    phone: user.phone,
+    marketingEmails: user.marketingEmails ?? true,
     isActive: user.isActive,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
@@ -143,14 +145,19 @@ export async function PUT(
 
     // Hash password if being updated
     const updateData: Record<string, unknown> = { ...data };
-    if (data.password) {
-      updateData.password = await hashPassword(data.password);
+    const newPassword = data.password;
+    const passwordChanged = !!newPassword;
+    if (passwordChanged && newPassword) {
+      updateData.password = await hashPassword(newPassword);
     }
 
-    // Update user
+    // Update user; revoke refresh sessions when password changes
     const user = await User.findByIdAndUpdate(
       id,
-      { $set: updateData },
+      {
+        $set: updateData,
+        ...(passwordChanged && { $unset: { refreshToken: "" } }),
+      },
       { new: true, runValidators: true }
     ).lean<IUser>();
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
-import Image from "next/image"
+import { SafeImage } from "@/components/ui/safe-image"
 import { ArrowUpRight } from "lucide-react"
 import { HighlightedText } from "./highlighted-text"
 
@@ -130,7 +130,7 @@ export function FeaturedProducts() {
               >
                 <article className="relative overflow-hidden rounded-lg border border-border hover:shadow-2xl hover:border-accent/50 hover:-translate-y-1 transition-all duration-500">
                   <div className="relative aspect-3/4 overflow-hidden">
-                    <Image
+                    <SafeImage
                       src={imageSrc}
                       alt={product.name}
                       fill

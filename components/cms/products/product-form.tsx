@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
+import { SafeImage } from "@/components/ui/safe-image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { X, Upload, Plus, Loader2 } from "lucide-react";
@@ -381,7 +381,7 @@ export function ProductForm({ product, categories }: ProductFormProps) {
                       key={index}
                       className="relative aspect-square rounded-lg overflow-hidden bg-muted group"
                     >
-                      <Image
+                      <SafeImage
                         src={url}
                         alt={`Image ${index + 1}`}
                         fill

@@ -10,8 +10,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
 
     const user = authenticateRequest(request);
 
-    // Clear refresh token from database
-    await User.findByIdAndUpdate(user.userId, { refreshToken: null });
+    // Clear refresh token from database (revoke session)
+    await User.findByIdAndUpdate(user.userId, { $unset: { refreshToken: "" } });
 
     const response = NextResponse.json<ApiResponse>(
       {

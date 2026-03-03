@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import Image from "next/image";
+import { SafeImage } from "@/components/ui/safe-image";
 import Link from "next/link";
 import {
   MoreHorizontal,
@@ -105,7 +105,7 @@ function SortableRow({ category, index, onDeleteClick }: SortableRowProps) {
       <TableCell>
         <div className="relative size-12 rounded-md overflow-hidden bg-muted">
           {category.image ? (
-            <Image
+            <SafeImage
               src={category.image}
               alt={category.name}
               fill
@@ -491,7 +491,7 @@ function MobileCategoryCard({ category, index, onDeleteClick }: MobileCategoryCa
           {/* Image */}
           <div className="relative size-14 rounded-md overflow-hidden bg-muted shrink-0">
             {category.image ? (
-              <Image
+              <SafeImage
                 src={category.image}
                 alt={category.name}
                 fill

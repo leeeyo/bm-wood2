@@ -1,7 +1,9 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { z } from "zod"
+import { useAuth } from "@/lib/contexts/auth-context"
+import { createAuthHeaders } from "@/lib/api/auth"
 import { Plus, Trash2, Send, Loader2, CheckCircle, Upload, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -82,6 +84,7 @@ interface DevisRequestFormProps {
 }
 
 export function DevisRequestForm({ initialItems }: DevisRequestFormProps) {
+  const { user } = useAuth()
   const [client, setClient] = useState({
     firstName: "",
     lastName: "",
@@ -90,6 +93,19 @@ export function DevisRequestForm({ initialItems }: DevisRequestFormProps) {
     address: "",
     city: "",
   })
+
+  // Pre-fill client fields when user is logged in
+  useEffect(() => {
+    if (user) {
+      setClient((prev) => ({
+        ...prev,
+        firstName: user.firstName ?? prev.firstName,
+        lastName: user.lastName ?? prev.lastName,
+        email: user.email ?? prev.email,
+        phone: user.phone ?? prev.phone,
+      }))
+    }
+  }, [user])
 
   // Initialize items with prefill data if provided
   const getInitialItems = (): DevisItem[] => {
@@ -301,7 +317,7 @@ export function DevisRequestForm({ initialItems }: DevisRequestFormProps) {
       const response = await fetch("/api/devis", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          ...createAuthHeaders(),
         },
         body: JSON.stringify(payload),
       })

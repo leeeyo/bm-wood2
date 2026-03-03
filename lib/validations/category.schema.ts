@@ -34,5 +34,11 @@ export const createCategorySchema = z.object({
 
 export const updateCategorySchema = createCategorySchema.partial();
 
+export const categoryQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).optional().default(1),
+  limit: z.coerce.number().int().min(1).max(500).optional().default(500),
+});
+
 export type CreateCategoryInput = z.infer<typeof createCategorySchema>;
 export type UpdateCategoryInput = z.infer<typeof updateCategorySchema>;
+export type CategoryQueryInput = z.infer<typeof categoryQuerySchema>;

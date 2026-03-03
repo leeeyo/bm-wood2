@@ -5,6 +5,11 @@ import type { IProduct, ICategory, IBlogPost } from "@/types/models.types"
 
 const DEFAULT_PAGE_SIZE = 12
 
+/** Serialize MongoDB documents to plain objects for Client Components (avoids toJSON/buffer errors) */
+function serializeForClient<T>(data: T): T {
+  return JSON.parse(JSON.stringify(data)) as T
+}
+
 export interface PaginatedResult<T> {
   data: T[]
   pagination: {
@@ -21,7 +26,7 @@ export async function getCategories(): Promise<ICategory[]> {
   const categories = await Category.find({ isActive: true })
     .sort({ order: 1, createdAt: -1 })
     .lean<ICategory[]>()
-  return categories
+  return serializeForClient(categories)
 }
 
 export async function getProducts(options: {
@@ -63,7 +68,7 @@ export async function getProducts(options: {
     .lean<IProduct[]>()
 
   return {
-    data,
+    data: serializeForClient(data),
     pagination: {
       page,
       totalPages,
@@ -79,13 +84,13 @@ export async function getProductBySlug(slug: string): Promise<IProduct | null> {
   const product = await Product.findOne({ slug, isActive: true })
     .populate("categoryId", "name slug")
     .lean<IProduct>()
-  return product
+  return product ? serializeForClient(product) : null
 }
 
 export async function getCategoryBySlug(slug: string): Promise<ICategory | null> {
   await connectDB()
   const category = await Category.findOne({ slug, isActive: true }).lean<ICategory>()
-  return category
+  return category ? serializeForClient(category) : null
 }
 
 export async function getBlogs(options: {
@@ -110,7 +115,7 @@ export async function getBlogs(options: {
     .lean<IBlogPost[]>()
 
   return {
-    data,
+    data: serializeForClient(data),
     pagination: {
       page,
       totalPages,
@@ -126,5 +131,5 @@ export async function getBlogBySlug(slug: string): Promise<IBlogPost | null> {
   const blog = await BlogPost.findOne({ slug, isPublished: true })
     .populate("authorId", "firstName lastName")
     .lean<IBlogPost>()
-  return blog
+  return blog ? serializeForClient(blog) : null
 }

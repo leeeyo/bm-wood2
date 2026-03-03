@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import Image from "next/image"
+import { SafeImage } from "@/components/ui/safe-image"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -38,7 +38,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
   return (
     <div className="relative">
       <div className="relative aspect-square bg-muted rounded-2xl overflow-hidden">
-        <Image
+        <SafeImage
           src={images[currentImageIndex]}
           alt={productName}
           fill
@@ -93,7 +93,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
               )}
             >
               <span className="relative block w-full h-full">
-                <Image
+                <SafeImage
                   src={img}
                   alt={`${productName} - image ${idx + 1}`}
                   fill

@@ -4,8 +4,7 @@ import { Types } from "mongoose";
 
 export enum UserRole {
   ADMIN = "admin",
-  MANAGER = "manager",
-  STAFF = "staff",
+  USER = "user",
 }
 
 export enum DevisStatus {
@@ -38,6 +37,8 @@ export interface IUser extends BaseDocument {
   firstName: string;
   lastName: string;
   role: UserRole;
+  phone?: string;
+  marketingEmails: boolean;
   refreshToken?: string;
   resetPasswordToken?: string;
   resetPasswordExpires?: Date;
@@ -50,6 +51,8 @@ export interface IUserPublic {
   firstName: string;
   lastName: string;
   role: UserRole;
+  phone?: string;
+  marketingEmails: boolean;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -152,6 +155,7 @@ export interface IDevis extends BaseDocument {
   status: DevisStatus;
   notes?: string;
   adminNotes?: string;
+  userId?: Types.ObjectId;
   assignedTo?: Types.ObjectId;
   estimatedPrice?: number;
   estimatedDate?: Date;

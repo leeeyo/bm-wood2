@@ -1,5 +1,5 @@
 import Link from "next/link"
-import Image from "next/image"
+import { SafeImage } from "@/components/ui/safe-image"
 import { ArrowUpRight } from "lucide-react"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
@@ -113,7 +113,7 @@ export default async function RealisationsPage({
                   <article className="cursor-pointer">
                     <div className="relative overflow-hidden aspect-4/3 mb-4 bg-muted">
                       {category.image ? (
-                        <Image
+                        <SafeImage
                           src={category.image}
                           alt={category.name}
                           fill

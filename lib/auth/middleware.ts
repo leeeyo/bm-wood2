@@ -4,6 +4,9 @@ import { AuthenticatedUser } from "@/types/auth.types";
 import { UserRole } from "@/types/models.types";
 import { ApiResponse, UnauthorizedError, ForbiddenError } from "@/types/api.types";
 
+/** Roles allowed to access CMS/internal data and unpublished content */
+export const CMS_ROLES = [UserRole.ADMIN] as const;
+
 /**
  * Extract the bearer token from the Authorization header
  */
@@ -50,6 +53,19 @@ export function requireRole(
   if (!allowedRoles.includes(user.role)) {
     throw new ForbiddenError("Insufficient permissions");
   }
+}
+
+/**
+ * Authenticate a request and require one of the allowed roles.
+ * Use this pattern after authentication to ensure CMS/admin endpoints cannot accidentally skip role checks.
+ */
+export function authenticateAndRequireRole(
+  request: NextRequest,
+  allowedRoles: UserRole[]
+): AuthenticatedUser {
+  const user = authenticateRequest(request);
+  requireRole(user, allowedRoles);
+  return user;
 }
 
 /**

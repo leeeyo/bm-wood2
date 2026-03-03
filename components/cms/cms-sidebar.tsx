@@ -10,6 +10,7 @@ import {
   Newspaper,
   Users,
   Image as ImageIcon,
+  UserCircle,
 } from "lucide-react";
 import { useAuth } from "@/lib/contexts/auth-context";
 import { UserRole } from "@/types/models.types";
@@ -69,6 +70,11 @@ const navItems: NavItem[] = [
     title: "Médias",
     href: "/cms/media",
     icon: ImageIcon,
+  },
+  {
+    title: "Mon profil",
+    href: "/cms/profile",
+    icon: UserCircle,
   },
 ];
 

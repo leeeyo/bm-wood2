@@ -9,7 +9,6 @@ import {
   UserCheck,
   UserX,
   Shield,
-  Briefcase,
   User,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -55,24 +54,27 @@ interface UserTableProps {
   onRefresh?: () => void;
 }
 
-// Role badge configuration
-const roleConfig: Record<UserRole, { label: string; variant: "default" | "secondary" | "outline"; icon: React.ElementType }> = {
+// Role badge configuration (includes legacy staff/manager for DB users not yet migrated)
+type RoleConfig = { label: string; variant: "default" | "secondary" | "outline"; icon: React.ElementType };
+const roleConfig: Record<string, RoleConfig> = {
   [UserRole.ADMIN]: {
     label: "Admin",
     variant: "default",
     icon: Shield,
   },
-  [UserRole.MANAGER]: {
-    label: "Manager",
-    variant: "secondary",
-    icon: Briefcase,
-  },
-  [UserRole.STAFF]: {
-    label: "Staff",
+  [UserRole.USER]: {
+    label: "Utilisateur",
     variant: "outline",
     icon: User,
   },
+  // Legacy roles (fallback for users not yet migrated)
+  staff: { label: "Utilisateur", variant: "outline", icon: User },
+  manager: { label: "Utilisateur", variant: "outline", icon: User },
 };
+
+function getRoleConfig(role: string): RoleConfig {
+  return roleConfig[role] ?? roleConfig[UserRole.USER];
+}
 
 export function UserTable({ users, isLoading, onRefresh }: UserTableProps) {
   const { user: currentUser } = useAuth();
@@ -184,7 +186,7 @@ export function UserTable({ users, isLoading, onRefresh }: UserTableProps) {
       <>
         <div className="space-y-3">
           {users.map((user) => {
-            const role = roleConfig[user.role];
+            const role = getRoleConfig(user.role);
             const RoleIcon = role.icon;
             const isCurrentUser = currentUser?._id === user._id;
 
@@ -291,7 +293,7 @@ export function UserTable({ users, isLoading, onRefresh }: UserTableProps) {
           </TableHeader>
           <TableBody>
             {users.map((user) => {
-              const role = roleConfig[user.role];
+              const role = getRoleConfig(user.role);
               const RoleIcon = role.icon;
               const isCurrentUser = currentUser?._id === user._id;
 

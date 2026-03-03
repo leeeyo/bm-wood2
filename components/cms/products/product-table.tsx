@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { SafeImage } from "@/components/ui/safe-image";
 import Link from "next/link";
 import { MoreHorizontal, Pencil, Trash2, Eye, Star, Package } from "lucide-react";
 import { toast } from "sonner";
@@ -105,7 +105,7 @@ export function ProductTable({ products, isLoading, onDelete }: ProductTableProp
               image={
                 <div className="relative size-14 rounded-md overflow-hidden bg-muted">
                   {product.images && product.images.length > 0 ? (
-                    <Image
+                    <SafeImage
                       src={product.images[0]}
                       alt={product.name}
                       fill
@@ -204,7 +204,7 @@ export function ProductTable({ products, isLoading, onDelete }: ProductTableProp
                 <TableCell>
                   <div className="relative size-12 rounded-md overflow-hidden bg-muted">
                     {product.images && product.images.length > 0 ? (
-                      <Image
+                      <SafeImage
                         src={product.images[0]}
                         alt={product.name}
                         fill

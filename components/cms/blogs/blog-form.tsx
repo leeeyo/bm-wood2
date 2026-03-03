@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
+import { SafeImage } from "@/components/ui/safe-image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { X, Upload, Loader2 } from "lucide-react";
@@ -288,7 +288,7 @@ export function BlogForm({ blog }: BlogFormProps) {
                 <div className="flex items-start gap-4">
                   {coverImage ? (
                     <div className="relative w-40 h-40 rounded-lg overflow-hidden bg-muted group">
-                      <Image
+                      <SafeImage
                         src={coverImage}
                         alt="Cover"
                         fill

@@ -62,12 +62,13 @@ export default function CMSDashboardPage() {
       setIsLoading(true);
       try {
         // Fetch all stats in parallel
+        const authHeaders = createAuthHeaders();
         const [productsRes, categoriesRes, devisRes, usersRes] = await Promise.all([
           fetch("/api/products?limit=1").then((res) => res.json()),
           fetch("/api/categories?limit=1").then((res) => res.json()),
-          fetch("/api/devis?status=pending&limit=1").then((res) => res.json()),
+          fetch("/api/devis?status=pending&limit=1", { headers: authHeaders }).then((res) => res.json()),
           isAdmin
-            ? fetch("/api/users?isActive=true&limit=1").then((res) => res.json())
+            ? fetch("/api/users?isActive=true&limit=1", { headers: authHeaders }).then((res) => res.json())
             : Promise.resolve({ pagination: { total: 0 } }),
         ]);
 

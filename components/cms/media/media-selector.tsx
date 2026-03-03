@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import Image from "next/image";
+import { SafeImage } from "@/components/ui/safe-image";
 import { ImagePlus, X, Upload, FileText, Check } from "lucide-react";
 
 import { IMedia, MediaType } from "@/types/models.types";
@@ -159,7 +159,7 @@ function SelectedMediaItem({ url, onRemove }: SelectedMediaItemProps) {
   return (
     <div className="relative group size-20 rounded-md border overflow-hidden bg-muted">
       {isImage ? (
-        <Image src={url} alt="" fill className="object-cover" />
+        <SafeImage src={url} alt="" fill className="object-cover" />
       ) : (
         <div className="flex items-center justify-center size-full">
           <FileText className="size-8 text-muted-foreground" />
@@ -349,7 +349,7 @@ function MediaSelectorDialog({
                       )}
                     >
                       {isImage(item) ? (
-                        <Image
+                        <SafeImage
                           src={item.url}
                           alt={item.originalName}
                           fill

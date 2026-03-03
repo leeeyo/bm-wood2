@@ -4,6 +4,7 @@ import connectDB from "@/lib/db/connection";
 import { User } from "@/lib/db/models";
 import { hashPassword } from "@/lib/auth/password";
 import { resetPasswordSchema } from "@/lib/validations/auth.schema";
+import { checkAuthRateLimit, AUTH_FAILURE_MESSAGE } from "@/lib/rate-limit";
 import { ApiResponse } from "@/types/api.types";
 
 function hashToken(token: string): string {
@@ -14,9 +15,20 @@ export async function POST(
   request: NextRequest
 ): Promise<NextResponse<ApiResponse<Record<string, never>>>> {
   try {
-    await connectDB();
+    const body = await request.json().catch(() => ({}));
 
-    const body = await request.json();
+    const limit = checkAuthRateLimit(request);
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { success: false, error: AUTH_FAILURE_MESSAGE },
+        {
+          status: 429,
+          headers: limit.retryAfter ? { "Retry-After": String(limit.retryAfter) } : undefined,
+        }
+      );
+    }
+
+    await connectDB();
 
     const validationResult = resetPasswordSchema.safeParse(body);
     if (!validationResult.success) {
@@ -53,9 +65,14 @@ export async function POST(
 
     const hashedPassword = await hashPassword(password);
 
+    // Update password and revoke all refresh sessions (invalidate existing refresh tokens)
     await User.findByIdAndUpdate(user._id, {
       password: hashedPassword,
-      $unset: { resetPasswordToken: "", resetPasswordExpires: "" },
+      $unset: {
+        resetPasswordToken: "",
+        resetPasswordExpires: "",
+        refreshToken: "",
+      },
     });
 
     return NextResponse.json(

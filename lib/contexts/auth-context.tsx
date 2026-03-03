@@ -107,8 +107,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (res.data?.user) {
           setUser(res.data.user);
           toast.success("Connexion réussie");
-          const redirectUrl = getRedirectAfterLogin();
-          router.push(redirectUrl && redirectUrl !== "/login" ? redirectUrl : "/dashboard");
+          const redirectUrl = getRedirectAfterLogin(res.data.user.role);
+          router.push(redirectUrl);
         } else {
           toast.error("An unexpected error occurred. Please try again.");
         }
@@ -133,8 +133,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (res.data?.user) {
           setUser(res.data.user);
           toast.success("Compte créé avec succès");
-          const redirectUrl = getRedirectAfterLogin();
-          router.push(redirectUrl && redirectUrl !== "/login" ? redirectUrl : "/dashboard");
+          const redirectUrl = getRedirectAfterLogin(res.data.user.role);
+          router.push(redirectUrl);
         } else {
           toast.error("An unexpected error occurred. Please try again.");
         }

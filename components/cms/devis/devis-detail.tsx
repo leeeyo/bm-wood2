@@ -13,7 +13,7 @@ import {
   Package,
   FileText,
   UserCircle,
-  Euro,
+  Banknote,
   Clock,
   FileDown,
   RefreshCw,
@@ -516,9 +516,9 @@ export function DevisDetail({ devis, onUpdate }: DevisDetailProps) {
 
             {/* Estimated price */}
             <div className="space-y-2">
-              <Label htmlFor="estimatedPrice">Prix estimé (€)</Label>
+              <Label htmlFor="estimatedPrice">Prix estimé (TND)</Label>
               <div className="relative">
-                <Euro className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                <Banknote className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                 <Input
                   id="estimatedPrice"
                   type="number"

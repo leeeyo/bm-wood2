@@ -31,8 +31,7 @@ import {
 const roleOptions = [
   { value: "all", label: "Tous les rôles" },
   { value: UserRole.ADMIN, label: "Administrateur" },
-  { value: UserRole.MANAGER, label: "Manager" },
-  { value: UserRole.STAFF, label: "Staff" },
+  { value: UserRole.USER, label: "Utilisateur" },
 ];
 
 // Status filter options

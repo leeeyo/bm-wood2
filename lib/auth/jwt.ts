@@ -1,6 +1,14 @@
+import crypto from "crypto";
 import jwt, { JwtPayload, SignOptions } from "jsonwebtoken";
 import { JWTAccessPayload, JWTRefreshPayload } from "@/types/auth.types";
 import { UserRole } from "@/types/models.types";
+
+/**
+ * Hash a refresh token for secure storage. Store the hash in DB, never the raw token.
+ */
+export function hashRefreshToken(token: string): string {
+  return crypto.createHash("sha256").update(token).digest("hex");
+}
 
 function getRequiredSecret(name: string): string {
   const value = process.env[name];

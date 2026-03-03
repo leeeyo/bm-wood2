@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import Image from "next/image"
+import { SafeImage } from "@/components/ui/safe-image"
 import Link from "next/link"
 import { ArrowUpRight, X, ChevronLeft, ChevronRight } from "lucide-react"
 import { IProduct } from "@/types/models.types"
@@ -57,7 +57,7 @@ export function ProductDetailModal({
           <div className="relative bg-muted aspect-square md:aspect-auto md:h-full">
             {images.length > 0 ? (
               <>
-                <Image
+                <SafeImage
                   src={images[currentImageIndex]}
                   alt={product.name}
                   fill

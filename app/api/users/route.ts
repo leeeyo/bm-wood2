@@ -15,6 +15,8 @@ function toUserPublic(user: IUser): IUserPublic {
     firstName: user.firstName,
     lastName: user.lastName,
     role: user.role,
+    phone: user.phone,
+    marketingEmails: user.marketingEmails ?? true,
     isActive: user.isActive,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,

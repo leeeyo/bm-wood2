@@ -44,7 +44,7 @@ export async function GET(
       throw new NotFoundError("Media not found");
     }
 
-    const isAuthorized = [UserRole.ADMIN, UserRole.MANAGER].includes(authUser.role);
+    const isAuthorized = authUser.role === UserRole.ADMIN;
     if (isAuthorized) {
       return successResponse(media as IMedia);
     }
@@ -86,7 +86,7 @@ export async function DELETE(
     // Authenticate
     try {
       const authUser = authenticateRequest(request);
-      requireRole(authUser, [UserRole.ADMIN, UserRole.MANAGER]);
+      requireRole(authUser, [UserRole.ADMIN]);
     } catch (error) {
       if (error instanceof UnauthorizedError) {
         return errorResponse(error.message, 401);

@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LogOut,
-  Settings,
   User,
   ExternalLink,
   LayoutDashboard,
@@ -19,7 +18,7 @@ import {
 import { useAuth } from "@/lib/contexts/auth-context";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { UserRole } from "@/types/models.types";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -85,6 +84,11 @@ const navItems: NavItem[] = [
     title: "Médias",
     href: "/cms/media",
     icon: ImageIcon,
+  },
+  {
+    title: "Mon profil",
+    href: "/cms/profile",
+    icon: User,
   },
 ];
 
@@ -160,10 +164,6 @@ export function CMSHeader() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative size-9 rounded-full">
                 <Avatar className="size-9">
-                  <AvatarImage
-                    src="/placeholder-user.jpg"
-                    alt={user?.firstName ?? "User"}
-                  />
                   <AvatarFallback className="bg-primary text-primary-foreground text-xs">
                     {getInitials(user?.firstName, user?.lastName)}
                   </AvatarFallback>
@@ -190,12 +190,6 @@ export function CMSHeader() {
                   <Link href="/cms/profile">
                     <User className="mr-2 size-4" />
                     <span>Mon profil</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/cms/settings">
-                    <Settings className="mr-2 size-4" />
-                    <span>Paramètres</span>
                   </Link>
                 </DropdownMenuItem>
               </DropdownMenuGroup>
@@ -258,10 +252,6 @@ export function CMSHeader() {
           <div className="absolute bottom-0 left-0 right-0 border-t p-4">
             <div className="flex items-center gap-3 mb-4">
               <Avatar className="size-10">
-                <AvatarImage
-                  src="/placeholder-user.jpg"
-                  alt={user?.firstName ?? "User"}
-                />
                 <AvatarFallback className="bg-primary text-primary-foreground text-sm">
                   {getInitials(user?.firstName, user?.lastName)}
                 </AvatarFallback>
